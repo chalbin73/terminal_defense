@@ -1,3 +1,3 @@
-# TLDR
-## Tales of Lord Dangling's Ruins
+# TLDR;
+## Tales of Lord Dangling's Ruins;
 
