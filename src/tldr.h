@@ -5,18 +5,18 @@
 #include <locale.h>
 #include "config.h"
 enum CHARS {
-	CHARS_BLOCK_UP = L'▀',
-	CHARS_BLOCK_DOWN = L'▄',
-	CHARS_BLOCK_FULL = L'█',
-	CHARS_BLOCK_LEFT = L'▌',
-	CHARS_BLOCK_RIGHT = L'▐',
-	CHARS_BLOCK_LIGHT = L'░',
-	CHARS_BLOCK_MEDIUM = L'▒',
-	CHARS_BLOCK_DARK = L'▓',
-	CHARS_TRIANGLE_LEFT = L'◀',
-	CHARS_TRIANGLE_RIGHT = L'▶',
-	CHARS_TRIANGLE_DOWN = L'▼',
-	CHARS_TRIANGL_UP = L'▼',
+	CHARS_BLOCK_UP = U'▀',
+	CHARS_BLOCK_DOWN = U'▄',
+	CHARS_BLOCK_FULL = U'█',
+	CHARS_BLOCK_LEFT = U'▌',
+	CHARS_BLOCK_RIGHT = U'▐',
+	CHARS_BLOCK_LIGHT = U'░',
+	CHARS_BLOCK_MEDIUM = U'▒',
+	CHARS_BLOCK_DARK = U'▓',
+	CHARS_TRIANGLE_LEFT = U'◀',
+	CHARS_TRIANGLE_RIGHT = U'▶',
+	CHARS_TRIANGLE_DOWN = U'▼',
+	CHARS_TRIANGL_UP = U'▼',
 };
 enum DIRECTIONS {
 	DIR_UP = 0,
@@ -32,4 +32,4 @@ struct monster {
 	int posy;
 	int id;
 };
-typedef struct monster monster ;
+typedef struct monster monster;
