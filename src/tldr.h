@@ -34,6 +34,9 @@ enum DIRECTION
     DIR_LEFT  = 3,
 };
 
+// Les images sont des tableau unidirectionels de caractères
+// (on met les lignes les une après les autres)
+// stride renseigne de combien on doit se décaler pour accéder a la ligne suivante
 typedef struct {
 	int col;
 	int row;
@@ -44,7 +47,7 @@ typedef struct {
 struct monster
 {
     sprite_t     sprite;
-    DIRECTION    direction;
+    enum DIRECTION    direction;
     int32_t      posx;
     int32_t      posy;
     uint32_t     id;
