@@ -21,18 +21,11 @@ enum DIRECTIONS {
 	DIR_LEFT = 3,
 };
 
-struct sprite_t {
-	char16_t up_left;
-	char16_t down_left;
-	char16_t up_right;
-	char16_t down_right;
-};
-typedef struct sprite_t sprite_t ;
-
-struct monstre {
-	sprite_t sprite;
-	int orientation;
+struct monster {
+	char32_t sprite;
+	int direction;
 	int posx;
 	int posy;
+	int id;
 };
-typedef struct monstre monstre ;
+typedef struct monster monster ;
