@@ -1,5 +1,9 @@
 #include <uchar.h>
-
+#include <stdint.h>
+#include <sys/ioctl.h>
+#include <stdio.h>
+#include <locale.h>
+#include "config.h"
 enum CHARS {
 	CHARS_BLOCK_UP = L'▀',
 	CHARS_BLOCK_DOWN = L'▄',

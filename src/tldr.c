@@ -1,8 +1,3 @@
-#include <uchar.h>
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <locale.h>
-#include "config.h"
 #include "tldr.h"
 
 
