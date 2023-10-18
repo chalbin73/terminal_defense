@@ -6,7 +6,7 @@
 
 #include "config.h"
 #include "graphical.h"
-
+#include "common.h"
 typedef unsigned int uint ;
 
 enum DIRECTION {

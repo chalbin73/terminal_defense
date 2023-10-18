@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 #include "config.h"
-
+#include "common.h"
 typedef unsigned int uint;
 
 enum CHAR {

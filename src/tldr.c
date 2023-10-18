@@ -1,5 +1,4 @@
 #include "tldr.h"
-
 void cleanup() {
 	//fonction appellé a la sortie du programme
 	graphical_cleanup();
@@ -8,7 +7,7 @@ void cleanup() {
 
 int main (int argc,char **argv,char **env){
 	//***setup initial***
-	
+
 	init_graphical();
 	//initialize randomness using system time
 	srand((unsigned int)time(NULL));
