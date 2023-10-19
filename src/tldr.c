@@ -20,5 +20,5 @@ int main (int argc,char **argv,char **env){
 
 void print_monster(monster_t monster){
 	//affiche un monstre
-	pict_display(monster.sprite, monster.posx, monster.posy);
+	pict_display(monster.type->sprite, monster.posx, monster.posy);
 }

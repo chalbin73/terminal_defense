@@ -29,7 +29,7 @@ enum CHAR {
 
 //Couleur pour les charactères d'échapement.
 //Il faut ajouter 10 pour set le background.
-enum COLOR {
+typedef enum COLOR {
 	COL_BLACK  =30,
 	COL_RED    =31,
 	COL_GREEN  =32,
@@ -39,7 +39,7 @@ enum COLOR {
 	COL_CYAN   =36,
 	COL_WHITE  =37,
 	COL_DEFAULT=39,
-};
+} COLOR ;
 
 //un pixel: une couleur est 1 caractère UTF_8 (donc 4 char)
 typedef struct {

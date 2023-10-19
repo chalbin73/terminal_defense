@@ -1,4 +1,4 @@
 # TLDR;
-## Tales of Lord Dangling's Ruins;
+## Tower L** Defense R****;
 
-Une aventure rogue-like difficile et semi-aléatoire, a l'aide d'une interface minimaliste en terminal.
+Un tower defense en terminal, codé en C, sans dépandences externes.

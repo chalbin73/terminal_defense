@@ -9,19 +9,26 @@
 #include "common.h"
 typedef unsigned int uint ;
 
-enum DIRECTION {
+typedef enum {
 	DIR_UP    = 0,
 	DIR_DOWN  = 1,
 	DIR_RIGHT = 2,
 	DIR_LEFT  = 3,
-};
-
+} DIRECTION;
 typedef struct {
 	picture_t sprite;
-	enum DIRECTION direction;
+	uint vie_max;
+	uint vitesse;
+	
+} monster_type;
+
+
+typedef struct {
+	monster_type* type;
+	//direction dans laquelle regarde le mob
+	DIRECTION direction;
 	int32_t posx;
 	int32_t posy;
-	uint32_t id;
 } monster_t;
 
 
