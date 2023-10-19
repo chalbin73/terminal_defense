@@ -19,6 +19,7 @@ typedef struct {
 	picture_t sprite;
 	uint vie_max;
 	uint vitesse;
+	uint degats;
 	
 } monster_type;
 
@@ -29,6 +30,7 @@ typedef struct {
 	DIRECTION direction;
 	int32_t posx;
 	int32_t posy;
+	uint vie;
 } monster_t;
 
 
