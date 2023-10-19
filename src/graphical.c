@@ -26,13 +26,15 @@ void init_graphical(){
 	struct termios raw = orig_term_settings;
 	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
 	raw.c_oflag &= ~(OPOST);
-	raw.c_cc[VMIN] = NB_INPUT_CHAR; raw.c_cc[VTIME] = 1;
+	raw.c_cc[VMIN] = NB_INPUT_CHAR; raw.c_cc[VTIME] = 1; //VTIME a 1 permet de timeout scanf au bout de 0.1 secondes (jeu a 10 fps)
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 	//set terminal locale to make behavior more robust accros different settings
 	setlocale(LC_ALL, "");
 	//set la valeur par default de certaine variables globales
 	cur_color=COL_DEFAULT;
 	cur_color_background=COL_DEFAULT;
+	//chaine vide (des 0) pour l'input_string
+	memset(input_string,0, sizeof(char)*(NB_INPUT_CHAR+1));
 }
 
 

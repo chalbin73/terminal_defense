@@ -7,6 +7,7 @@
 #include <locale.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "config.h"
 #include "common.h"
@@ -39,7 +40,7 @@ typedef enum COLOR {
 	COL_CYAN   =36,
 	COL_WHITE  =37,
 	COL_DEFAULT=39,
-} COLOR ;
+} COLOR;
 
 //un pixel: une couleur,une couleur de fond, et 1 caractère UTF_8 (donc 4 char)
 typedef struct {
@@ -61,7 +62,8 @@ typedef struct {
 	pixel_t* data;
 } picture_t;
 
-
+//var globale
+char input_string[NB_INPUT_CHAR+1];
 //declaration de fonctions
 
 //mets en place les graphismes
@@ -79,4 +81,6 @@ void set_color(COLOR color);
 void set_color_background(COLOR color);
 //affiche sur le terminal une image a une position donnée
 void pict_display(picture_t pict, uint x, uint y);
+//mets l'input clavier dans input_string
+void get_input();
 #endif //def GRAPHICALH

@@ -39,3 +39,5 @@ typedef struct {
 
 //affiche un monstre
 void print_monster(monster_t monster);
+//mets l'input clavier dans input_string
+void get_input();
