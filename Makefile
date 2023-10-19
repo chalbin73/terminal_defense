@@ -1,23 +1,32 @@
-CFLAGS=-std=c99 -Wall -Werror -Wvla -ggdb -Isrc/
+CFLAGS=-std=c99 -Wall -Werror -Wvla -Isrc/ 
 LDFLAGS=
+
+RELEASE_FLAGS=-O3
+DEBUG_FLAGS=-g -Og
 
 SOURCES=
 SOURCES+=common.c
 SOURCES+=graphical.c
 SOURCES+=tldr.c
 
-.PHONY: all
+.PHONY: all debug help
 
+all: CFLAGS+=$(RELEASE_FLAGS)
+all: LDFLAGS+=-s
 all: tldr
+
+debug: CFLAGS+=$(DEBUG_FLAGS)
+debug: tldr
 
 help:
 	@echo "TLDR; Makefile help"
-	@echo "    make             Compiles and links the program"
+	@echo "    make             Compiles and links the program (stripped)"
+	@echo "    make debug       Compiles and links the program with debugging flags"
 	@echo "    make clean       Cleans object files and executable"
 	@echo "    make help        Displays this help"
 
 tldr: $(foreach source,$(SOURCES),build/$(patsubst %.c,%.o,$(source)))
-	$(CC) $? -o tldr 
+	$(CC) $? $(LDFLAGS) -o tldr 
 
 build_dir:
 	@mkdir -p build
