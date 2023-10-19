@@ -1,4 +1,7 @@
 #include "tldr.h"
+
+char input[NB_INPUT_CHAR];
+
 void cleanup() {
 	//fonction appellé a la sortie du programme
 	graphical_cleanup();

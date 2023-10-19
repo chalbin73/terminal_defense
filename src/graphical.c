@@ -2,7 +2,7 @@
 
 struct winsize winsize;
 struct termios orig_term_settings;
-enum COLOR cur_color;
+COLOR cur_color,cur_color_background;
 
 void graphical_cleanup() {
 	//appellé a la sortie, résponsable de clean les graphisme
@@ -26,12 +26,13 @@ void init_graphical(){
 	struct termios raw = orig_term_settings;
 	raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
 	raw.c_oflag &= ~(OPOST);
-	raw.c_cc[VMIN] = 1; raw.c_cc[VTIME] = 0;
+	raw.c_cc[VMIN] = NB_INPUT_CHAR; raw.c_cc[VTIME] = 1;
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 	//set terminal locale to make behavior more robust accros different settings
 	setlocale(LC_ALL, "");
 	//set la valeur par default de certaine variables globales
 	cur_color=COL_DEFAULT;
+	cur_color_background=COL_DEFAULT;
 }
 
 
@@ -60,12 +61,20 @@ void go_to(int x,int y){
 	//en utilisant des sequence échapée
 	printf("\e[%i;%iH",x,y);
 }
-void set_color(enum COLOR color){
+void set_color(COLOR color){
 	//si la couleur est différente de l'actuelle
 	//set la nouvelle couleur a l'aide de carctères d'échapement
 	if (color != cur_color){
 		cur_color=color;
 		printf("\e[%im",color);
+	}
+}
+void set_color_background(COLOR color){
+	//si la couleur est différente de l'actuelle
+	//set la nouvelle couleur a l'aide de carctères d'échapement
+	if (color != cur_color_background){
+		cur_color_background=color;
+		printf("\e[%im",color+10);
 	}
 }
 
@@ -81,6 +90,7 @@ void pict_display(picture_t pict, uint x, uint y){
 			//on obtient le pixel a afficher et on l'affiche
 			pixel_t* pixel=&pict.data[i+j*pict.stride];
 			set_color(pixel->color);
+			set_color_background(pixel->background_color);
 			printf("%.4s",&(pixel->c1));
 		}
 	}

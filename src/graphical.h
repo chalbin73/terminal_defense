@@ -41,16 +41,17 @@ typedef enum COLOR {
 	COL_DEFAULT=39,
 } COLOR ;
 
-//un pixel: une couleur est 1 caractère UTF_8 (donc 4 char)
+//un pixel: une couleur,une couleur de fond, et 1 caractère UTF_8 (donc 4 char)
 typedef struct {
-	enum COLOR color;
+	COLOR color;
+	COLOR background_color;
 	char c1;
 	char c2;
 	char c3;
 	char c4;
 } pixel_t;
 
-// Les images sont des tableau unidirectionels de caractères
+// Les images sont des tableau de pixels
 // (on met les lignes les une après les autres)
 // stride renseigne de combien on doit se décaler pour accéder a la ligne suivante
 typedef struct {
@@ -73,7 +74,9 @@ picture_t pict_crop_size(picture_t pict, uint xmin, uint col, uint ymin, uint ro
 //mets le curseur a la position x,y sur le terminal
 void go_to(int x,int y);
 //set la couleur d'affichage
-void set_color(enum COLOR color);
+void set_color(COLOR color);
+//set la couleur d'affichage background
+void set_color_background(COLOR color);
 //affiche sur le terminal une image a une position donnée
 void pict_display(picture_t pict, uint x, uint y);
 #endif //def GRAPHICALH
