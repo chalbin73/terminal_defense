@@ -2,11 +2,12 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #include "config.h"
 #include "graphical.h"
 #include "common.h"
-typedef unsigned int uint ;
+typedef unsigned int uint;
 
 typedef enum {
 	DIR_UP    = 0,
@@ -19,7 +20,7 @@ typedef struct {
 	uint vie_max;
 	uint vitesse;
 	uint degats;
-	
+
 } monster_type;
 
 
@@ -40,7 +41,7 @@ typedef struct {
 void print_monster(monster_t* monster);
 //deplace un monstre
 void move_monster(monster_t* monster,uint new_x,uint new_y);
-//mets l'input clavier dans input_string
-void get_input();
 //boucle principale d'execution
 void main_loop(uint difficulty);
+//vide l'input clavier
+void clear_input();

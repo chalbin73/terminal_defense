@@ -24,6 +24,9 @@
 	#endif
 #endif
 
+//Global var
+extern char* EXIT_MSG;
+
 //attend ms milliseconde
 int wait(long unsigned int ms);
 

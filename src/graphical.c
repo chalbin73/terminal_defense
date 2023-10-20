@@ -24,7 +24,7 @@ void graphical_cleanup() {
 	//restore les attributs du terminal
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_term_settings);
 	//réaffiche le curseur, et reset la couleur
-	printf("\e[?25h \e[0m \n");
+	printf("\e[2J \e[H \e[?25h \e[0m \n");
 
 }
 

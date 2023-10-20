@@ -3,10 +3,11 @@
 
 //** raccourcis claviers **
 enum keys {
-	UP = 'z',
-	DOWN = 's',
-	LEFT = 'q',
-	RIGHT = 'd',
+	KEY_QUIT = 'q',
+	KEY_UP = 'z',
+	KEY_DOWN = 's',
+	KEY_LEFT = 'q',
+	KEY_RIGHT = 'd',
 };
 
 //** COULEURS  **
@@ -39,7 +40,5 @@ typedef enum COLOR {
 
 
 //** Autre configs **
-//nombre maximums de charactères d'entré en une frame
-#define NB_INPUT_CHAR 100
 
 #endif //ifdef config

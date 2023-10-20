@@ -2,16 +2,17 @@
 
 //variable globale
 //(plus simple que de passer des pointeurs dans touts les sens)
-char input_string[NB_INPUT_CHAR+1];
 picture_t background_pict;
 uint joueur_vie,joueur_score;
-
+char* EXIT_MSG="Crash while initializing ...";
 
 void cleanup() {
 	//fonction appellé a la sortie du programme
 	//free les variables qui trainent
 	graphical_cleanup();
+	clear_input();
 	free(background_pict.data);
+	printf("%s",EXIT_MSG);
 }
 
 
@@ -25,8 +26,6 @@ int main(int argc,char **argv,char **env){
 	atexit(cleanup);
 
 	//initialise les variables globales
-	//mise a zero de l'input
-	memset(input_string,0, sizeof(char)*(NB_INPUT_CHAR+1));
 	//creation du background
 	int reserved=15;
 	background_pict.col=termsize.ws_col-reserved;
@@ -57,7 +56,8 @@ int main(int argc,char **argv,char **env){
 	joueur_score=0;
 
 	//on lance le jeu
-	main_loop(10);	
+	EXIT_MSG="Crashing whitout more precision while game was running";
+	main_loop(10);
 	return EXIT_SUCCESS;
 }
 
@@ -78,11 +78,31 @@ void move_monster(monster_t* monster,uint new_x,uint new_y){
 }
 
 
-//obtient les inputs et les mets input_string
-void get_input(){
-	//for (int i=0;i<NB_INPUT_CHAR;i++){
-		scanf("%50c",input_string);
-	//}
+//enlève tout les inputs claviers non traitées
+void clear_input(){
+	while (read(STDIN_FILENO, NULL, 20)) {
+
+	}
+}
+
+//obtient et traite les inputs claviers
+void treat_input(){
+	char input;
+	while (read(STDIN_FILENO,&input,1)) {
+		switch (input) {
+		case '\e':
+			//Le caractère d'échapement est présent devant plein de trucs spéciaux (Eg F1)
+			//trop compliquer a parser, on détruit l'input
+			clear_input();
+			break;
+		case '\3':
+		case '\4':
+		case KEY_QUIT:
+			EXIT_MSG="Interupted by user, quiting";
+			exit(130);
+
+		}
+	}
 }
 
 //main game loop
@@ -90,13 +110,9 @@ void get_input(){
 void main_loop(uint difficulty){
 	while (joueur_vie>0) {
 		wait(100);
-		get_input();
+		treat_input();
 		joueur_vie-=difficulty;
-		printf("%s",input_string);
-		
-		if (input_string[0]=='q'){
-			exit(0);
-		}
+
 	}
 	return;
 }
