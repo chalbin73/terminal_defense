@@ -27,7 +27,7 @@ help:
 	@echo "    make help        Displays this help"
 
 tldr: $(foreach source,$(SOURCES),build/$(patsubst %.c,%.o,$(source)))
-	$(CC) $? $(LDFLAGS) -o tldr 
+	$(CC) $^ $(LDFLAGS) -o tldr 
 
 build_dir:
 	@mkdir -p build

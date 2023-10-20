@@ -38,13 +38,17 @@ void init_graphical(){
 	//setup du terminal sur linux
 	#if SYSTEM_POSIX
 		//sauvegarde les attributs terminal (pour restauration future) et mets le term en raw mode
+		//Voir http://manpagesfr.free.fr/man/man3/termios.3.html pour plus de détails
 		tcgetattr(STDIN_FILENO, &orig_term_settings);
 		struct termios raw = orig_term_settings;
-		raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-		raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+		raw.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG);
+		raw.c_iflag &= ~( IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
 		raw.c_oflag &= ~(OPOST);
-		raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 1; //VTIME a 1 permet de timeout scanf au bout de 0.1 secondes (jeu a 10 fps)
-		tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+		raw.c_cflag &= ~(CSIZE | PARENB);
+		raw.c_cflag |= CS8;
+		raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0; //VTIME a 1 permet de timeout scanf au bout de 0.1 secondes (jeu a 10 fps)
+		//tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+		tcsetattr(STDIN_FILENO, TCSANOW, &raw);
 	#endif //SYSTEM_POSIX
 	//setup windows
 	#if SYSTEM_WINDOWS
@@ -131,10 +135,10 @@ picture_t pict_crop_size(picture_t pict, uint xmin, uint col, uint ymin, uint ro
 	};
 }
 
-void go_to(int x,int y){
+void go_to(int ligne,int colonne){
 	//mets le curseur a la position x,y sur le terminal
 	//en utilisant des sequence échapée
-	printf("\e[%i;%iH",x,y);
+	printf("\e[%i;%if",ligne,colonne);
 }
 void set_color(int color){
 	//si la couleur est différente de l'actuelle
@@ -161,13 +165,13 @@ void set_color_background(int color){
 	}
 }
 
-void pict_display(picture_t pict, uint x, uint y){
+void pict_display(picture_t pict, uint ligne, uint colonne){
 	//affiche sur le terminal une image a une position donnée
 
 	//pour chaque ligne
 	for (int i=0; i<pict.row; i++){
 		//on se mets au debut de la ligne (en x,y+i)
-		go_to(x,y+i);
+		go_to(i+ligne,colonne);
 		//pour chaque colonne
 		for (int j=0; j<pict.col; j++){
 			//on obtient le pixel a afficher et on l'affiche

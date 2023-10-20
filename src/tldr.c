@@ -43,7 +43,7 @@ int main(int argc,char **argv,char **env){
 				.color=COL_DEFAULT,
 				.background_color=0,
 			};
-			if (((i/2)%2) ^ ((j/2)%2)){ //selectionne les carreaux du damier
+			if (((i%5)==2) && ((j%5)==2)){ //selectionne les carreaux du damier
 				pixel.background_color=COL_BOARD_BACKGROUND_1;
 			} else {
 				pixel.background_color=COL_BOARD_BACKGROUND_2;
@@ -80,7 +80,9 @@ void move_monster(monster_t* monster,uint new_x,uint new_y){
 
 //obtient les inputs et les mets input_string
 void get_input(){
-	scanf("%50s",input_string);	
+	//for (int i=0;i<NB_INPUT_CHAR;i++){
+		scanf("%50c",input_string);
+	//}
 }
 
 //main game loop
@@ -89,8 +91,9 @@ void main_loop(uint difficulty){
 	while (joueur_vie>0) {
 		wait(100);
 		get_input();
-		joueur_vie-=1;
+		joueur_vie-=difficulty;
 		printf("%s",input_string);
+		
 		if (input_string[0]=='q'){
 			exit(0);
 		}

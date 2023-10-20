@@ -1,3 +1,6 @@
+#define _POSIX_C_SOURCE 199309L //sinon, nanosleep n'est pas définie (et usleep non plus) 
+								//(et je ne comprend pas quelle fonction on devrait utiliser)
+
 #ifndef COMMONH
 #define COMMONH
 
@@ -10,6 +13,7 @@
     #define SYSTEM_POSIX    1
 	#define SYSTEM_WINDOWS  0
 	#include <unistd.h>
+	#include <time.h>
 #else
 	#ifdef _WIN64
 		#define SYSTEM_WINDOWS  1
