@@ -12,10 +12,11 @@ SOURCES+=tldr.c
 .PHONY: all debug help
 
 all: CFLAGS+=$(RELEASE_FLAGS)
-all: LDFLAGS+=-s
+all: LDFLAGS+=-s $(RELEASE_FLAGS)
 all: tldr
 
 debug: CFLAGS+=$(DEBUG_FLAGS)
+debug: LDFLAGS+=$(DEBUG_FLAGS)
 debug: tldr
 
 help:
