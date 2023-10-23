@@ -3,13 +3,14 @@
 /* ************************
  ***VARIABLES GLOBALES***
  ************************/
+char* EXIT_MSG;
 
-picture_t background_pict;
 uint joueur_vie,joueur_score;
-
-picture_t background_pict;
-uint joueur_vie, joueur_score;
 tab_size_t arena_size;
+uint cursor_x,cursor_y; //position du curseur
+bool cursor_is_shown;
+pixel_t cursor_pixel;
+
 
 monster_pool_empty_header *monster_pool_head;
 void *monster_memory      = NULL;
@@ -27,18 +28,19 @@ monster_t **monster_positions;
 
 void cleanup() {
 	//fonction appellé a la sortie du programme
+
 	//free les variables qui trainent
 	clear_input();
 	graphical_cleanup();
 	monster_pool_destroy();
-	free(background_pict.data);
 	free(monster_positions);
+	//exit reason
 	printf("%s\n",EXIT_MSG);
 }
 
 void    print_monster(monster_t   *monster, int posx, int posy){
 	//affiche un monstre
-	pict_display(monster->type->sprite, posx, posy);
+	compose_disp_pix(monster->type->sprite,COMPOSE_ARENA, posx, posy);
 }
 
 void    move_monster(monster_t *monster,monster_t** previous_ptr, uint new_x, uint new_y){
@@ -55,9 +57,47 @@ void    move_monster(monster_t *monster,monster_t** previous_ptr, uint new_x, ui
 void clear_input(){
 	char poubelle[20];
 	while (read(STDIN_FILENO, poubelle, 20)) {
-
+		//le but étant de vider stdin, on ne fais rien avec les charactères ...
 	}
 }
+void show_cursor(){
+	compose_disp_pix(cursor_pixel, COMPOSE_UI, cursor_x, cursor_y);
+	cursor_is_shown=true;
+}
+void hide_cursor(){
+	compose_del_pix(COMPOSE_UI,cursor_x,cursor_y);
+	cursor_is_shown=false;
+}
+void blink_cursor(){
+	if(cursor_is_shown){
+		hide_cursor();
+	} else {
+		show_cursor();
+	}
+}
+
+void move_cursor(DIRECTION dir){
+	hide_cursor();
+	switch (dir) {
+	case DIR_UP:
+		if (cursor_y>1) {
+			cursor_y-=1;
+		} break;
+	case DIR_DOWN:
+		if (cursor_y<arena_size.row-2) {
+			cursor_y+=1;
+		} break;
+	case DIR_LEFT:
+		if (cursor_x>1) {
+			cursor_x-=1;
+		} break;
+	case DIR_RIGHT:
+		if (cursor_x<arena_size.col-2) {
+			cursor_x+=1;
+		}
+	}
+}
+
 
 /******************
  ***MOTEUR DE JEU***
@@ -70,12 +110,14 @@ int     main(){
 	//***setup initial***
 
 	init_graphical();
+
 	//initialize randomness using system time
 	srand( (unsigned int)time(NULL) );
 	//renseigne la fonction a éxécuter a la sortie du programme
 	atexit(cleanup);
 
-	//initialise les variables globales
+	//*initialise les variables globales*
+
 	//creation du background
 	int reserved=20;
 	//taille de l'arène
@@ -84,27 +126,29 @@ int     main(){
 	arena_size.row=termsize.row;
 
 	//initialisation du background avec son patterne
-	background_pict.size=arena_size;
-	background_pict.data=(pixel_t*)safe_malloc(sizeof(pixel_t)*background_pict.size.col*background_pict.size.row);
-	for (int i=0; i<background_pict.size.col; i++){
-		for (int j=0; j<background_pict.size.row; j++) {
-			pixel_t pixel=(pixel_t){
-				.c1=' ',         //le caractères étant un simple ascii (un espace),
-				.c2='\0',        //il ne prend que c1, les autres sont donc nulls
-				.c3='\0',
-				.c4='\0',
-				.color=COL_DEFAULT,
-				.background_color=0,
-			};
-			if (((i%5)==2) || ((j%5)==2)){ //selectionne les carreaux du damier
+	pixel_t pixel=(pixel_t){
+		.c1=' ',                 //le caractères étant un simple ascii (un espace),
+		.c2='\0',                //il ne prend que c1, les autres sont donc nulls
+		.color=COL_DEFAULT,
+	};
+	for (int i=0; i<arena_size.col; i++){
+		for (int j=0; j<arena_size.row; j++) {
+			if (((i%5)==2) || ((j%5)==2)){ //selectionne des lignes verticales et horizontales éspacé de 5 cases
 				pixel.background_color=COL_BOARD_BACKGROUND_1;
 			} else {
 				pixel.background_color=COL_BOARD_BACKGROUND_2;
 			}
-			background_pict.data[i+j*background_pict.size.stride] = pixel;
+			compose_disp_pix(pixel, COMPOSE_BACK, i, j);
 		}
 	}
-	pict_display(background_pict, 0, 0);
+	pixel.background_color=COL_DEFAULT;
+	for (int i=arena_size.col; i<termsize.col; i++){
+		for (int j=0; j<termsize.row; j++) {
+			compose_disp_pix(pixel, COMPOSE_BACK, i,j);
+		}
+	}
+	//initialisation du curseur
+
 
 	monster_pool_create(200);
 	//creation (et initialisation a zero) de monster_position
@@ -113,6 +157,13 @@ int     main(){
 	//autre variables globales
 	joueur_vie   = 1000;
 	joueur_score = 0;
+	cursor_pixel = (pixel_t){
+		.c1=' ',
+		.c2='\0',
+		.color=COL_DEFAULT,
+		.background_color=COL_CURSOR,
+	};
+
 	EXIT_MSG="Crashing whithout more precision while game was running";
 
 	//on lance le jeu
@@ -132,11 +183,17 @@ void treat_input(){
 			//trop compliquer a parser, on détruit l'input
 			clear_input();
 			break;
-		case '\3':
-		case '\4':
 		case KEY_QUIT:
 			EXIT_MSG="Interupted by user, quiting";
 			exit(130);
+		case KEY_UP:
+			move_cursor(DIR_UP); break;
+		case KEY_DOWN:
+			move_cursor(DIR_DOWN); break;
+		case KEY_LEFT:
+			move_cursor(DIR_LEFT); break;
+		case KEY_RIGHT:
+			move_cursor(DIR_RIGHT); break;
 
 		}
 	}
@@ -146,9 +203,11 @@ void treat_input(){
 //run until quit or die
 void main_loop(uint difficulty){
 	while (joueur_vie>0) {
-		fflush(stdout);
-		wait(100);
 		treat_input();
+		blink_cursor();
+		compose_refresh();
+
+		wait(100);
 	}
 	return;
 }

@@ -121,4 +121,8 @@ void compose_disp_pix(pixel_t pixel,COMPOSE_RANK rank,uint posx,uint posy);
 void compose_have_changed(int posx,int posy);
 // @brief Affiche a l'écran les changements
 void compose_refresh();
+// @brief efface un pixel
+void compose_del_pix(COMPOSE_RANK rank,int posx,int posy);
+// @brief efface une zone
+void compose_del_area(COMPOSE_RANK rank,int minx, int maxx, int miny, int maxy);
 #endif //def GRAPHICALH

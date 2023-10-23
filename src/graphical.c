@@ -32,7 +32,7 @@ void graphical_cleanup() {
 	//restore les attributs du terminal
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_term_settings);
 	//réaffiche le curseur, et reset la couleur
-	printf("%s","\e[H \e[?25h \e[0m \e[2J \n");
+	printf("%s","\e[H \e[?25h \e[0m \e[2J");
 
 	compose_free();
 
@@ -49,7 +49,7 @@ void init_graphical(){
 	struct winsize raw_termsize;
 	ioctl(0, TIOCGWINSZ, &raw_termsize);
 	termsize.col=raw_termsize.ws_col;
-	termsize.row=raw_termsize.ws_row+1; //plus 1 come from personnal testing, maybe need feedback
+	termsize.row=raw_termsize.ws_row;
 	termsize.stride=raw_termsize.ws_col; //utilisé pour pouvoir assigner rappidement la taille de l'écran a des images
 
 	//setup du terminal sur linux
@@ -185,7 +185,8 @@ picture_t pict_crop_size(picture_t pict, uint xmin, uint col, uint ymin, uint ro
 
 void go_to(int ligne,int colonne){
 	//mets le curseur a la position demandée sur le terminal
-	printf("\e[%i;%if",ligne,colonne);
+	//le terminal compte a partir de 1, C a partir de 0, donc on ajoute 1
+	printf("\e[%i;%if",ligne+1,colonne+1);
 }
 void advance_cursor(uint nb){
 	//avance le cusreur de nb charctères
@@ -266,7 +267,7 @@ void compose_init(){
 	compositor_stride=termsize.col*termsize.row;
 	//on demande 5 images de la taille de l'écran, se suivant en mémoire
 	//l'écart (en nombre de pixels) et donc de compositor_stride (= nombre de pixels dans une image = col * row)
-	pixel_t* compositor_pixels=(pixel_t*)safe_malloc(sizeof(pixel_t)*compositor_stride*5);
+	compositor_pixels=(pixel_t*)safe_malloc(sizeof(pixel_t)*compositor_stride*5);
 }
 
 //free le compositeur
@@ -325,6 +326,20 @@ void compose_refresh(){
 		.data=&compositor_pixels[compositor_stride*COMPOSE_CHANGES],
 	};
 	pict_direct_display(changes, 0, 0);
+	fflush(stdout);
 	//on reset les changements (puisqu' on vient de les afficher)
-	memset(changes.data , 0, compositor_stride*sizeof(pixel_t));
+	memset(changes.data, 0, compositor_stride*sizeof(pixel_t));
+	
+}
+//efface un pixel
+void compose_del_pix(COMPOSE_RANK rank,int posx,int posy){
+	compositor_pixels[posx + posy*termsize.stride + rank*compositor_stride].c1='\0';
+	compose_have_changed(posx,posy);
+}
+void compose_del_area(COMPOSE_RANK rank,int minx, int maxx, int miny, int maxy){
+	for (;minx<=maxx;minx++){
+		for (;miny<=maxy;maxy++) {
+			compose_del_pix(rank,minx,miny);
+		}
+	}
 }

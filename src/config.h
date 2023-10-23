@@ -3,7 +3,7 @@
 
 //** raccourcis claviers **
 enum keys {
-	KEY_QUIT = 'q',
+	KEY_QUIT = '', //Ctrl+C
 	KEY_UP = 'z',
 	KEY_DOWN = 's',
 	KEY_LEFT = 'q',

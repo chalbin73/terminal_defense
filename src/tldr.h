@@ -13,7 +13,6 @@
  *************************/
 
 typedef unsigned int uint;
-
 typedef enum {
 	DIR_UP    = 0,
 	DIR_DOWN  = 1,
@@ -22,7 +21,7 @@ typedef enum {
 } DIRECTION;
 
 typedef struct {
-	picture_t sprite;
+	pixel_t sprite;
 	uint max_life;
 	uint speed;
 	uint damage;
@@ -79,7 +78,8 @@ void print_monster(monster_t* monster, int posx, int posy);
 void    move_monster(monster_t *monster,monster_t** previous_ptr, uint new_x, uint new_y);
 // @brief vide l'input clavier
 void clear_input();
-
+// @brief bouge le curseur dans la direction demandée
+void move_cursor(DIRECTION dir);
 
 /******************
  ***MOTEUR DE JEU***

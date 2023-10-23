@@ -7,7 +7,7 @@ void* safe_malloc(size_t size){
 	if (ptr!=NULL){
 		return ptr;
 	}
-	EXIT_MSG="malloc a fail!!! sortie de programme!!!"
+	EXIT_MSG="malloc a fail!!! sortie de programme!!!";
 	//la fonction cleanup *devrait* clean notre bordel
 	exit(254);
 }
