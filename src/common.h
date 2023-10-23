@@ -24,6 +24,20 @@
 	#endif
 #endif
 
+//raccourcis d'écriture
+typedef unsigned int uint ;
+extern char* EXIT_MSG;
+
+//associé a un tableau
+//renseigne sa largeur (nb_col), hauteur(nb_row),et espacement entre chaque ligne (stride)
+//dans un tableau "complet", stride==nb_col, mais stocker stride a part
+//permet de faire des vues partielles des tableaux (un masque/cropping ...)
+typedef struct {
+	uint col;
+	uint row;
+	uint stride;
+} tab_size_t; 
+
 //Global var
 extern char* EXIT_MSG;
 

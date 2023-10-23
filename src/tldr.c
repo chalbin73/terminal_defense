@@ -1,53 +1,93 @@
 #include "tldr.h"
 
-//variable globale
-//(plus simple que de passer des pointeurs dans touts les sens)
+/* ************************
+ ***VARIABLES GLOBALES***
+ ************************/
+
 picture_t background_pict;
 uint joueur_vie,joueur_score;
-char* EXIT_MSG="Crash while initializing ...";
-
-void cleanup() {
-	//fonction appellé a la sortie du programme
-	//free les variables qui trainent
-	graphical_cleanup();
-	clear_input();
-	free(background_pict.data);
-	printf("%s",EXIT_MSG);
-}
 
 picture_t background_pict;
 uint joueur_vie, joueur_score;
-
-typedef struct monster_pool_empty_header
-{
-    struct monster_pool_empty_header   *next;
-} monster_pool_empty_header;
+tab_size_t arena_size;
 
 monster_pool_empty_header *monster_pool_head;
 void *monster_memory      = NULL;
 uint32_t max_monsters     = 0;
 uint32_t alloced_monsters = 0;
 
+//associe a chaque case de l'arenne un monstre/une construction.
+//chaque monstre pointe sur les autres monstres dans la même case (liste chainée)
+//une seule construction est autorisée par cases
+monster_t **monster_positions;
 
-int     main(int argc, char **argv, char **env)
-{
-    //***setup initial***
+/***********************************
+ ***FONCTIONS UTILITAIRES DE BASES***
+ ************************************/
 
-    init_graphical();
-    //initialize randomness using system time
-    srand( (unsigned int)time(NULL) );
-    //renseigne la fonction a éxécuter a la sortie du programme
-    atexit(cleanup);
+void cleanup() {
+	//fonction appellé a la sortie du programme
+	//free les variables qui trainent
+	clear_input();
+	graphical_cleanup();
+	monster_pool_destroy();
+	free(background_pict.data);
+	free(monster_positions);
+	printf("%s\n",EXIT_MSG);
+}
+
+void    print_monster(monster_t   *monster, int posx, int posy){
+	//affiche un monstre
+	pict_display(monster->type->sprite, posx, posy);
+}
+
+void    move_monster(monster_t *monster,monster_t** previous_ptr, uint new_x, uint new_y){
+	//on retire le montre de son ancienne case
+	//en faisant pointer le précédant sur le suivant
+	*previous_ptr=monster->next_monster_in_room;
+	//puis on ajoute le monstre au début de la liste de la case suivante
+	//et on fait pointer le monstre sur les autres de la case
+	monster->next_monster_in_room=monster_positions[new_x+new_y*arena_size.stride];
+	monster_positions[new_x+new_y*arena_size.stride]=monster;
+}
+
+//enlève tout les inputs claviers non traitées
+void clear_input(){
+	char poubelle[20];
+	while (read(STDIN_FILENO, poubelle, 20)) {
+
+	}
+}
+
+/******************
+ ***MOTEUR DE JEU***
+ *******************/
+
+
+int     main(){
+	//si jamais ...
+	EXIT_MSG="Crash while initializing ...";
+	//***setup initial***
+
+	init_graphical();
+	//initialize randomness using system time
+	srand( (unsigned int)time(NULL) );
+	//renseigne la fonction a éxécuter a la sortie du programme
+	atexit(cleanup);
 
 	//initialise les variables globales
 	//creation du background
-	int reserved=15;
-	background_pict.col=termsize.ws_col-reserved;
-	background_pict.row=termsize.ws_row;
-	background_pict.stride=background_pict.col;
-	background_pict.data=(pixel_t*)safe_malloc(sizeof(pixel_t)*background_pict.col*background_pict.row);
-	for (int i=0; i<background_pict.col; i++){
-		for (int j=0; j<background_pict.row; j++) {
+	int reserved=20;
+	//taille de l'arène
+	arena_size.col=termsize.col-reserved;
+	arena_size.stride=arena_size.col;
+	arena_size.row=termsize.row;
+
+	//initialisation du background avec son patterne
+	background_pict.size=arena_size;
+	background_pict.data=(pixel_t*)safe_malloc(sizeof(pixel_t)*background_pict.size.col*background_pict.size.row);
+	for (int i=0; i<background_pict.size.col; i++){
+		for (int j=0; j<background_pict.size.row; j++) {
 			pixel_t pixel=(pixel_t){
 				.c1=' ',         //le caractères étant un simple ascii (un espace),
 				.c2='\0',        //il ne prend que c1, les autres sont donc nulls
@@ -56,55 +96,36 @@ int     main(int argc, char **argv, char **env)
 				.color=COL_DEFAULT,
 				.background_color=0,
 			};
-			if (((i%5)==2) && ((j%5)==2)){ //selectionne les carreaux du damier
+			if (((i%5)==2) || ((j%5)==2)){ //selectionne les carreaux du damier
 				pixel.background_color=COL_BOARD_BACKGROUND_1;
 			} else {
 				pixel.background_color=COL_BOARD_BACKGROUND_2;
 			}
-			background_pict.data[i+j*background_pict.stride] = pixel;
+			background_pict.data[i+j*background_pict.size.stride] = pixel;
 		}
 	}
-    pict_display(background_pict, 0, 0);
-    //autre variables globales
-    joueur_vie   = 1000;
-    joueur_score = 0;
+	pict_display(background_pict, 0, 0);
+
+	monster_pool_create(200);
+	//creation (et initialisation a zero) de monster_position
+	monster_positions=safe_malloc(sizeof(monster_t*)*arena_size.row*arena_size.col);
+	memset(monster_positions, (long int)NULL, sizeof(monster_t*)*arena_size.row*arena_size.col);
+	//autre variables globales
+	joueur_vie   = 1000;
+	joueur_score = 0;
 	EXIT_MSG="Crashing whithout more precision while game was running";
 
-    //on lance le jeu
-    main_loop(10);
-    return EXIT_SUCCESS;
+	//on lance le jeu
+	main_loop(10);
+	EXIT_MSG="";
+	return EXIT_SUCCESS;
 }
 
-
-void    print_monster(monster_t   *monster)
-{
-    //affiche un monstre
-    pict_display(monster->type->sprite, monster->posx, monster->posy);
-}
-void    move_monster(monster_t *monster, uint new_x, uint new_y)
-{
-    picture_t monster_sprite = monster->type->sprite;
-    //on efface l'ancien monstre en affichant le background a son ancienne position.
-    picture_t to_print = pict_crop_size(background_pict, monster->posx, monster_sprite.col, monster->posy, monster_sprite.row);
-    pict_display(to_print, monster->posx, monster->posy);
-    //puis on réaffiche le nouveau monstre, et on change sa position
-    pict_display(monster_sprite, new_x, new_y);
-    monster->posx = new_x;
-    monster->posy = new_y;
-}
-
-
-//enlève tout les inputs claviers non traitées
-void clear_input(){
-	while (read(STDIN_FILENO, NULL, 20)) {
-
-	}
-}
 
 //obtient et traite les inputs claviers
 void treat_input(){
 	char input;
-	while (read(STDIN_FILENO,&input,1)) {
+	while (read(STDIN_FILENO,&input,1)) {  // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
 		switch (input) {
 		case '\e':
 			//Le caractère d'échapement est présent devant plein de trucs spéciaux (Eg F1)
@@ -125,54 +146,45 @@ void treat_input(){
 //run until quit or die
 void main_loop(uint difficulty){
 	while (joueur_vie>0) {
+		fflush(stdout);
 		wait(100);
 		treat_input();
-		joueur_vie-=difficulty;
-
 	}
 	return;
 }
 
-/*
- * @brief Creates and initialized the pool of all monsters
- *
- * @param pool_size The maximum amount of monster that can be allocated inside the pool
- */
-void    monster_pool_create(uint32_t    pool_size)
+// Creates and initialized the pool of all monsters
+void    monster_pool_create(uint32_t pool_size)
 {
-    // Allocate the memory to store the monsters
-    monster_memory    = safe_malloc(sizeof(monster_t) * pool_size);
-    monster_pool_head = monster_memory;
-    max_monsters      = pool_size;
+	// Allocate the memory to store the monsters
+	monster_memory    = safe_malloc(sizeof(monster_t) * pool_size);
+	monster_pool_head = monster_memory;
+	max_monsters      = pool_size;
 
-    // Write empty header
-    for (int i = 0; i < pool_size; i++)
-    {
-        void *ptr = &( (uint8_t *)monster_memory )[i * sizeof(monster_t)];
+	// Write empty header
+	for (int i = 0; i < pool_size; i++)
+	{
+		void *ptr = &( (uint8_t *)monster_memory )[i * sizeof(monster_t)];
 
-        monster_pool_empty_header *node = (monster_pool_empty_header *)ptr;
-        // Push free node onto thte free list
-        node->next        = monster_pool_head;
-        monster_pool_head = node;
-    }
+		monster_pool_empty_header *node = (monster_pool_empty_header *)ptr;
+		// Push free node onto thte free list
+		node->next        = monster_pool_head;
+		monster_pool_head = node;
+	}
 
 }
 
-
-/*
- * @brief Cleans up and frees the memory of the monster pool
- *
- */
+// Cleans up and frees the memory of the monster pool
 void    monster_pool_destroy(void)
 {
-    if(monster_memory == NULL)
-        return;
+	if(monster_memory == NULL)
+		return;
 
-    free(monster_memory);
-    monster_pool_head = NULL;
-    monster_memory    = NULL;
-    alloced_monsters  = 0;
-    max_monsters      = 0;
+	free(monster_memory);
+	monster_pool_head = NULL;
+	monster_memory    = NULL;
+	alloced_monsters  = 0;
+	max_monsters      = 0;
 }
 
 /*
@@ -183,16 +195,16 @@ void    monster_pool_destroy(void)
  */
 monster_t   *monster_pool_alloc(void)
 {
-    if (
-        max_monsters == alloced_monsters
-        || monster_memory == NULL
-        || monster_pool_head == NULL
-        )
-        return NULL;
-    void *res = monster_pool_head;
-    monster_pool_head = monster_pool_head->next;
-    alloced_monsters++;
-    return res;
+	if (
+		max_monsters == alloced_monsters
+		|| monster_memory == NULL
+		|| monster_pool_head == NULL
+		)
+		return NULL;
+	void *res = monster_pool_head;
+	monster_pool_head = monster_pool_head->next;
+	alloced_monsters++;
+	return res;
 
 }
 
@@ -205,23 +217,23 @@ monster_t   *monster_pool_alloc(void)
  */
 void    monster_pool_dealloc(monster_t   *ptr)
 {
-    if(
-        ptr == NULL ||
-        monster_memory == NULL ||
-        monster_pool_head == NULL ||
-        max_monsters == 0 ||
-        alloced_monsters == 0
-        )
-    {
-        return;
-    }
+	if(
+		ptr == NULL ||
+		monster_memory == NULL ||
+		monster_pool_head == NULL ||
+		max_monsters == 0 ||
+		alloced_monsters == 0
+		)
+	{
+		return;
+	}
 
-    alloced_monsters--;
-    *( (monster_pool_empty_header *) ptr ) = (monster_pool_empty_header)
-    {
-        .next = monster_pool_head
-    };
-    monster_pool_head = (monster_pool_empty_header *)ptr;
+	alloced_monsters--;
+	*( (monster_pool_empty_header *) ptr ) = (monster_pool_empty_header)
+	{
+		.next = monster_pool_head
+	};
+	monster_pool_head = (monster_pool_empty_header *)ptr;
 }
 
 /*
@@ -232,6 +244,6 @@ void    monster_pool_dealloc(monster_t   *ptr)
  */
 uint32_t    monster_pool_count(void)
 {
-    return alloced_monsters;
+	return alloced_monsters;
 }
 
