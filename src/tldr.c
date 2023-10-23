@@ -12,10 +12,11 @@ bool cursor_is_shown;
 pixel_t cursor_pixel;
 
 
-monster_pool_empty_header *monster_pool_head;
-void *monster_memory      = NULL;
-uint32_t max_monsters     = 0;
-uint32_t alloced_monsters = 0;
+monster_t *monster_pool_head;
+void **monster_memories           = NULL;
+uint32_t monster_memories_count = 0;
+uint32_t max_monsters           = 0;
+uint32_t alloced_monsters       = 0;
 
 //associe a chaque case de l'arenne un monstre/une construction.
 //chaque monstre pointe sur les autres monstres dans la même case (liste chainée)
@@ -211,96 +212,93 @@ void main_loop(uint difficulty){
 	}
 	return;
 }
+// Augmente la taille de la mémoire de monstre
+void monster_pool_expand(uint32_t expand_size){
+	//allocation d'un nouveau morceau de mémoire pour les monstre
+	monster_memories_count+=1;
+	monster_memories=safe_realloc(monster_memories, monster_memories_count*sizeof(monster_t*));
+
+	monster_t* new_pool=(monster_t*)safe_malloc(expand_size*sizeof(monster_t));
+	monster_memories[monster_memories_count-1]=(void*)new_pool;
+
+	max_monsters+=expand_size;
+
+	//remplissage de la nouvelle mémoire avec des header (monstres ne possédant qu'un pointeur)
+	for (uint32_t i=0;i<expand_size-1;i++){
+		new_pool[i]=(monster_t){
+			.next_monster_in_room=&new_pool[i+1],
+		};
+	}
+	//on connecte la nouvelle pool au reste
+	new_pool[expand_size-1]=(monster_t){
+		.next_monster_in_room=monster_pool_head,
+	};
+	monster_pool_head=new_pool;
+}
+
 
 // Creates and initialized the pool of all monsters
 void    monster_pool_create(uint32_t pool_size)
 {
 	// Allocate the memory to store the monsters
-	monster_memory    = safe_malloc(sizeof(monster_t) * pool_size);
-	monster_pool_head = monster_memory;
-	max_monsters      = pool_size;
-
-	// Write empty header
-	for (int i = 0; i < pool_size; i++)
-	{
-		void *ptr = &( (uint8_t *)monster_memory )[i * sizeof(monster_t)];
-
-		monster_pool_empty_header *node = (monster_pool_empty_header *)ptr;
-		// Push free node onto thte free list
-		node->next        = monster_pool_head;
-		monster_pool_head = node;
-	}
-
+	monster_memories         = NULL;
+	monster_pool_head      = NULL;
+	max_monsters           = 0;
+	alloced_monsters       = 0;
+	monster_memories_count = 0;
+	
+	monster_pool_expand(pool_size);
 }
 
 // Cleans up and frees the memory of the monster pool
 void    monster_pool_destroy(void)
 {
-	if(monster_memory == NULL)
+	if(monster_memories == NULL)
 		return;
-
-	free(monster_memory);
-	monster_pool_head = NULL;
-	monster_memory    = NULL;
-	alloced_monsters  = 0;
-	max_monsters      = 0;
+	for(int i=0;i<monster_memories_count;i++){
+		free(monster_memories[i]);
+	}
+	free(monster_memories);
+	monster_pool_head      = NULL;
+	monster_memories       = NULL;
+	alloced_monsters       = 0;
+	max_monsters           = 0;
+	monster_memories_count = 0;
 }
 
 /*
  * @brief Allocates a monster in the monster pool
  *
  * @returns A pointer to a empty monster_t structure which can be used freely
- * @note Returns null pointer if the pool is full or not initialized
  */
 monster_t   *monster_pool_alloc(void)
 {
 	if (
 		max_monsters == alloced_monsters
-		|| monster_memory == NULL
+		|| monster_memories == NULL
 		|| monster_pool_head == NULL
 		)
-		return NULL;
+		monster_pool_expand(max_monsters);
 	void *res = monster_pool_head;
-	monster_pool_head = monster_pool_head->next;
+	monster_pool_head = monster_pool_head->next_monster_in_room;
 	alloced_monsters++;
 	return res;
 
 }
 
-/*
- * @brief Deallocates a monster slot in the monster pool
- *
- * @param ptr A valid pointer to a slot in the monster pool which is to be freed
- * @note Nothing happens if pool is unitialized or empty or ptr is null.
- *       if ptr is not a valid pointer given by monster_pool_alloc, behavior is unspecified.
- */
-void    monster_pool_dealloc(monster_t   *ptr)
+// Deallocates a monster slot in the monster pool
+void    monster_pool_dealloc(monster_t   *monster)
 {
-	if(
-		ptr == NULL ||
-		monster_memory == NULL ||
-		monster_pool_head == NULL ||
-		max_monsters == 0 ||
-		alloced_monsters == 0
-		)
-	{
+	if(monster == NULL ){
 		return;
 	}
 
 	alloced_monsters--;
-	*( (monster_pool_empty_header *) ptr ) = (monster_pool_empty_header)
-	{
-		.next = monster_pool_head
-	};
-	monster_pool_head = (monster_pool_empty_header *)ptr;
+	monster->next_monster_in_room=monster_pool_head;
+	monster_pool_head = monster;
 }
 
-/*
- * @brief Returns the count of alloced monsters in the pool
- *
- * @return The number of monsters alloced in monster pool, 0 if the pool is empty
- *
- */
+// Returns the count of alloced monsters in the pool
 uint32_t    monster_pool_count(void)
 {
 	return alloced_monsters;

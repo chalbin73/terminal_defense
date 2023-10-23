@@ -47,4 +47,6 @@ int wait(long unsigned int ms);
 //malloc, en vérifiant que tout s'est bien passé
 //plante "proprement" si ce n'est pas le cas
 void* safe_malloc(size_t size);
+//pareil pour realloc
+void* safe_realloc(void* ptr,size_t new_size);
 #endif //def COMMONH

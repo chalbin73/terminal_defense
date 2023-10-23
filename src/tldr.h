@@ -27,21 +27,14 @@ typedef struct {
 	uint damage;
 
 } monster_type;
-typedef struct monter_t {
+typedef struct monster_t {
 	monster_type* type;
-	//direction dans laquelle regarde le mob
-	DIRECTION direction;
 	uint vie;
 	//pointeur vers les autres monstres dans la même case
 	//permet de "simplifier" le stockage des monstre a une certaine position
-	//(on en connait un, donc tout les autres en parcourant la liste)
-	struct monter_t* next_monster_in_room;
+	//(on en connait un, donc tout les autres en passant d'un mob a l'autre)
+	struct monster_t* next_monster_in_room;
 } monster_t;
-
-typedef struct monster_pool_empty_header
-{
-	struct monster_pool_empty_header   *next;
-} monster_pool_empty_header;
 
 typedef struct {
 	pixel_t sprite;
@@ -49,6 +42,7 @@ typedef struct {
 	uint max_life;
 	uint damage;
 	uint range;
+
 } defense_type_t;
 typedef struct {
 	defense_type_t* type;
@@ -102,5 +96,30 @@ void main_loop(uint difficulty);
  * @param pool_size The maximum amount of monster that can be allocated inside the pool
  */
 void    monster_pool_create(uint32_t pool_size);
+
 // @brief Cleans up and frees the memory of the monster pool
 void    monster_pool_destroy(void);
+
+/*
+ * @brief Allocates a monster in the monster pool
+ *
+ * @returns A pointer to a empty monster_t structure which can be used freely
+ */
+monster_t   *monster_pool_alloc(void);
+
+/*
+ * @brief Deallocates a monster slot in the monster pool
+ *
+ * @param ptr A valid pointer to a slot in the monster pool which is to be freed
+ * @note Nothing happens if pool is unitialized or empty or ptr is null.
+ *       if ptr is not a valid pointer given by monster_pool_alloc, behavior is unspecified.
+ */
+void    monster_pool_dealloc(monster_t   *monster);
+
+/*
+ * @brief Returns the count of alloced monsters in the pool
+ *
+ * @return The number of monsters alloced in monster pool, 0 if the pool is empty
+ *
+ */
+uint32_t    monster_pool_count(void)
