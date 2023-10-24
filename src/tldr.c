@@ -212,6 +212,12 @@ void main_loop(uint difficulty){
 	}
 	return;
 }
+
+/*****************************
+ *** MONSTER POOL UTILITIES ***
+ ******************************/
+
+
 // Augmente la taille de la mémoire de monstre
 void monster_pool_expand(uint32_t expand_size){
 	//allocation d'un nouveau morceau de mémoire pour les monstre
@@ -266,11 +272,7 @@ void    monster_pool_destroy(void)
 	monster_memories_count = 0;
 }
 
-/*
- * @brief Allocates a monster in the monster pool
- *
- * @returns A pointer to a empty monster_t structure which can be used freely
- */
+// Allocates a monster in the monster pool
 monster_t   *monster_pool_alloc(void)
 {
 	if (
@@ -303,4 +305,5 @@ uint32_t    monster_pool_count(void)
 {
 	return alloced_monsters;
 }
+
 

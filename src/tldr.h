@@ -23,7 +23,10 @@ typedef enum {
 typedef struct {
 	pixel_t sprite;
 	uint max_life;
+	//en frame/cases
+	//+ élevé = plus lent
 	uint speed;
+	//damage/frame
 	uint damage;
 
 } monster_type;
@@ -42,6 +45,7 @@ typedef struct {
 	uint max_life;
 	uint damage;
 	uint range;
+	picture_t ui_picture;
 
 } defense_type_t;
 typedef struct {
@@ -122,4 +126,12 @@ void    monster_pool_dealloc(monster_t   *monster);
  * @return The number of monsters alloced in monster pool, 0 if the pool is empty
  *
  */
-uint32_t    monster_pool_count(void)
+uint32_t    monster_pool_count(void);
+
+
+/*****************
+ *** RESSOURCES ***
+ ******************/
+//definie dans common_and_ressources.c
+
+extern const monster_type runner;

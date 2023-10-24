@@ -1,4 +1,13 @@
+//fonctions utilitaires
 #include "common.h"
+
+//ressources
+#include "tldr.h"
+
+/****************************
+ *** FONCTIONS UTILITAIRES ***
+ *****************************/
+
 
 void* safe_malloc(size_t size){
 	//obtient de la place mémoire et vérifie qu'elle a bien été alouée
@@ -37,3 +46,21 @@ int wait(unsigned long ms){
 		return Sleep(ms);
 	#endif
 }
+
+/*****************
+ *** RESSOURCES ***
+ ******************/
+
+const monster_type runner = {
+	.speed=2,
+	.damage=10,
+	.max_life=200,
+	.sprite = {
+		.color=COL_RED,
+		.background_color=COL_DEFAULT,
+		.c1=0xe2, //≫
+		.c2=0x89,
+		.c3=0xab,
+		.c4='\0',
+	},
+};
