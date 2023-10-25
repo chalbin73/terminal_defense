@@ -17,18 +17,18 @@
 
 extern tab_size_t termsize;
 
-extern const char* CHARS_BLOCK_UP;
-extern const char* CHARS_BLOCK_DOWN;
-extern const char* CHARS_BLOCK_FULL;
-extern const char* CHARS_BLOCK_LEFT;
-extern const char* CHARS_BLOCK_RIGHT;
-extern const char* CHARS_BLOCK_LIGHT;
-extern const char* CHARS_BLOCK_MEDIUM;
-extern const char* CHARS_BLOCK_DARK;
-extern const char* CHARS_TRIANGLE_LEFT;
-extern const char* CHARS_TRIANGLE_RIGHT;
-extern const char* CHARS_TRIANGLE_DOWN;
-extern const char* CHARS_TRIANGLE_UP;
+extern const char CHARS_BLOCK_UP[4];
+extern const char CHARS_BLOCK_DOWN[4];
+extern const char CHARS_BLOCK_FULL[4];
+extern const char CHARS_BLOCK_LEFT[4];
+extern const char CHARS_BLOCK_RIGHT[4];
+extern const char CHARS_BLOCK_LIGHT[4];
+extern const char CHARS_BLOCK_MEDIUM[4];
+extern const char CHARS_BLOCK_DARK[4];
+extern const char CHARS_TRIANGLE_LEFT[4];
+extern const char CHARS_TRIANGLE_RIGHT[4];
+extern const char CHARS_TRIANGLE_DOWN[4];
+extern const char CHARS_TRIANGLE_UP[4];
 
 
 /*********************************

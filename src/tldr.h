@@ -135,3 +135,7 @@ uint32_t    monster_pool_count(void);
 //definie dans common_and_ressources.c
 
 extern const monster_type runner;
+extern const monster_type armored;
+
+extern const defense_type_t wall;
+extern const defense_type_t basic_turret;

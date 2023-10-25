@@ -12,18 +12,18 @@ pixel_t* compositor_pixels;
 uint compositor_stride;
 
 
-const char* CHARS_BLOCK_UP = "▀";
-const char* CHARS_BLOCK_DOWN = "▄";
-const char* CHARS_BLOCK_FULL = "█";
-const char*  CHARS_BLOCK_LEFT = "▌";
-const char* CHARS_BLOCK_RIGHT = "▐";
-const char* CHARS_BLOCK_LIGHT = "░";
-const char* CHARS_BLOCK_MEDIUM = "▒";
-const char* CHARS_BLOCK_DARK = "▓";
-const char* CHARS_TRIANGLE_LEFT = "◀";
-const char* CHARS_TRIANGLE_RIGHT = "▶";
-const char* CHARS_TRIANGLE_DOWN = "▼";
-const char* CHARS_TRIANGLE_UP = "▲";
+const char CHARS_BLOCK_UP[4] = "▀";
+const char CHARS_BLOCK_DOWN[4] = "▄";
+const char CHARS_BLOCK_FULL[4] = "█";
+const char  CHARS_BLOCK_LEFT[4] = "▌";
+const char CHARS_BLOCK_RIGHT[4] = "▐";
+const char CHARS_BLOCK_LIGHT[4] = "░";
+const char CHARS_BLOCK_MEDIUM[4] = "▒";
+const char CHARS_BLOCK_DARK[4] = "▓";
+const char CHARS_TRIANGLE_LEFT[4] = "◀";
+const char CHARS_TRIANGLE_RIGHT[4] = "▶";
+const char CHARS_TRIANGLE_DOWN[4] = "▼";
+const char CHARS_TRIANGLE_UP[4] = "▲";
 
 
 void graphical_cleanup() {

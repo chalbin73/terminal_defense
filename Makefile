@@ -5,7 +5,7 @@ RELEASE_FLAGS=-O3
 DEBUG_FLAGS=-g -Og
 
 SOURCES=
-SOURCES+=common.c
+SOURCES+=common_and_ressources.c
 SOURCES+=graphical.c
 SOURCES+=tldr.c
 
