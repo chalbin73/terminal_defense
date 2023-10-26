@@ -287,7 +287,7 @@ void compose_disp_pict(picture_t pict,COMPOSE_RANK rank,uint posx,uint posy){
 		       sizeof(pixel_t)*pict.size.col);                                               //nombre d'octets a copier
 		//puis on calcule les changements éventuels
 		for (int j=posx; j<posx+pict.size.col; j++){
-			compose_have_changed(i+posy,j);
+			compose_have_changed(j,i+posy);
 		}
 	}
 }
