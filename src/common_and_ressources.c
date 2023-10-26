@@ -78,6 +78,7 @@ const monster_type armored = {
 	}
 };
 
+
 const defense_type_t wall = {
 	.max_life=1000,
 	.damage=0,
@@ -86,11 +87,12 @@ const defense_type_t wall = {
 	.sprite= {
 		.color=COL_MAGENTA,
 		.background_color=COL_DEFAULT,
-		.c1=CHARS_BLOCK_FULL[0], //█
-		.c2=CHARS_BLOCK_FULL[1],
-		.c3=CHARS_BLOCK_FULL[2],
-		.c4=CHARS_BLOCK_FULL[3],
-	}
+		.c1=226, //█
+		.c2=150,
+		.c3=136,
+		.c4=0,
+	},
+	.ui_txt="Basic walls"
 };
 const defense_type_t basic_turret = {
 	.max_life=100,
@@ -104,5 +106,22 @@ const defense_type_t basic_turret = {
 		.c2=0xb6,
 		.c3='\0',
 		.c4='\0',
-	}
+	},
+	.ui_txt="Basic turret"
 };
+const defense_type_t base = {
+	.max_life=10000,
+	.damage=0,
+	.range=0,
+	.cost=0,
+	.sprite= {
+		.color=COL_GREEN,
+		.background_color=COL_DEFAULT,
+		.c1=226,  //⚑
+		.c2=154,
+		.c3=145,
+		.c4=0,
+	},
+	.ui_txt="Your base, defend it!"
+};
+

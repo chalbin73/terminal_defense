@@ -45,7 +45,7 @@ typedef struct {
 	uint max_life;
 	uint damage;
 	uint range;
-	picture_t ui_picture;
+	char* ui_txt;
 
 } defense_type_t;
 typedef struct {

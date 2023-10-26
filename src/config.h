@@ -8,6 +8,7 @@ enum keys {
 	KEY_DOWN = 's',
 	KEY_LEFT = 'q',
 	KEY_RIGHT = 'd',
+	KEY_BUILD = 'c',
 };
 
 //** COULEURS  **
