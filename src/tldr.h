@@ -62,11 +62,14 @@ typedef struct
 // Represente l'arbre de choix de defense dans le menu de selecion
 typedef struct defence_choice_tree_t
 {
-    uint32_t                        sub_category_count;
-    struct defence_choice_tree_t   *sub_categories;
+    char                                 *ui_txt;
+    pixel_t                               icon;
 
-    uint32_t                        defense_count;
-    defense_t                      *defenses;
+    uint32_t                              sub_category_count;
+    const struct defence_choice_tree_t  **sub_categories;
+
+    uint32_t                              defense_count;
+    const defense_type_t                     **defenses;
 } defence_choice_tree_t;
 
 /***********************************
@@ -155,4 +158,7 @@ extern const monster_type armored;
 
 extern const defense_type_t wall;
 extern const defense_type_t basic_turret;
+
+extern const picture_t frame;
+extern const defence_choice_tree_t main_selection_tree;
 
