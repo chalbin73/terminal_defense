@@ -362,7 +362,9 @@ void    compose_have_changed(int posx, int posy)
     //si la couleur de fond et par défault, on va chercher celle des pixels en dessous
     while (rank<=COMPOSE_BACK && pixel.background_color==COL_DEFAULT)
     {
-        pixel.background_color = compositor_pixels[ offshet + compositor_stride * rank ].background_color;
+		if (compositor_pixels[ offshet + compositor_stride * rank ].background_color != '\0') //si le pixel n'est pas transparent, on prend sa couleur de background
+			pixel.background_color = compositor_pixels[ offshet + compositor_stride * rank ].background_color;
+		rank += 1;
     }
     //si le pixel a changé, on l'ajoute au changements et on le modifie
     if ( !pix_equal(pixel, compositor_pixels[ offshet + compositor_stride * COMPOSE_RESULT ]) )
@@ -392,11 +394,11 @@ void    compose_del_pix(COMPOSE_RANK rank, int posx, int posy)
 }
 void    compose_del_area(COMPOSE_RANK rank, int minx, int maxx, int miny, int maxy)
 {
-    for (; minx<=maxx; minx++)
+    for (int x=minx; x<=maxx; x++)
     {
-        for (; miny<=maxy; miny++)
+        for (int y=miny; y<=maxy; y++)
         {
-            compose_del_pix(rank, minx, miny);
+            compose_del_pix(rank, x, y);
         }
     }
 }

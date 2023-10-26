@@ -15,61 +15,68 @@
 typedef unsigned int uint;
 typedef enum
 {
-    DIR_UP    = 0,
-    DIR_DOWN  = 1,
-    DIR_RIGHT = 2,
-    DIR_LEFT  = 3,
+	DIR_UP    = 0,
+	DIR_DOWN  = 1,
+	DIR_RIGHT = 2,
+	DIR_LEFT  = 3,
 } DIRECTION;
+typedef enum {
+	GAME_STOPED, //pas de partie en cours
+	GAME_PAUSED, //partie en cours mais en pause
+	GAME_PLAYING,//jeu lancé normalement
+	GAME_SELECT_DEF, //jeu lancé, en train de faire un choix de défense
+} GAME_STATE;
+
 
 typedef struct
 {
-    pixel_t    sprite;
-    uint       max_life;
-    //en frame/cases
-    //+ élevé = plus lent
-    uint       speed;
-    //damage/frame
-    uint       damage;
+	pixel_t sprite;
+	uint max_life;
+	//en frame/cases
+	//+ élevé = plus lent
+	uint speed;
+	//damage/frame
+	uint damage;
 
 } monster_type;
 typedef struct monster_t
 {
-    monster_type       *type;
-    uint                vie;
-    //pointeur vers les autres monstres dans la même case
-    //permet de "simplifier" le stockage des monstre a une certaine position
-    //(on en connait un, donc tout les autres en passant d'un mob a l'autre)
-    struct monster_t   *next_monster_in_room;
+	monster_type       *type;
+	uint vie;
+	//pointeur vers les autres monstres dans la même case
+	//permet de "simplifier" le stockage des monstre a une certaine position
+	//(on en connait un, donc tout les autres en passant d'un mob a l'autre)
+	struct monster_t   *next_monster_in_room;
 } monster_t;
 
 typedef struct
 {
-    pixel_t    sprite;
-    uint       cost;
-    uint       max_life;
-    uint       damage;
-    uint       range;
-    char      *ui_txt;
+	pixel_t sprite;
+	uint cost;
+	uint max_life;
+	uint damage;
+	uint range;
+	char      *ui_txt;
 
 } defense_type_t;
 
 typedef struct
 {
-    defense_type_t   *type;
-    uint              life;
+	defense_type_t   *type;
+	uint life;
 } defense_t;
 
 // Represente l'arbre de choix de defense dans le menu de selecion
 typedef struct defence_choice_tree_t
 {
-    char                                 *ui_txt;
-    pixel_t                               icon;
+	char                                 *ui_txt;
+	pixel_t icon;
 
-    uint32_t                              sub_category_count;
-    const struct defence_choice_tree_t  **sub_categories;
+	uint32_t sub_category_count;
+	const struct defence_choice_tree_t  **sub_categories;
 
-    uint32_t                              defense_count;
-    const defense_type_t                     **defenses;
+	uint32_t defense_count;
+	const defense_type_t                     **defenses;
 } defence_choice_tree_t;
 
 /***********************************
@@ -96,7 +103,7 @@ void         move_monster(monster_t *monster, monster_t **previous_ptr, uint new
 // @brief vide l'input clavier
 void         clear_input();
 // @brief bouge le curseur dans la direction demandée
-void         move_cursor(DIRECTION    dir);
+void         move_cursor(DIRECTION dir);
 
 /******************
  ***MOTEUR DE JEU***
@@ -108,8 +115,19 @@ int          main();
  *
  * @param difficulty dificultée de la partie
  */
-void         main_loop(uint    difficulty);
-
+void         main_loop(uint difficulty);
+// @brief selectionne la défense
+void select_defense();
+// @brief construit une défense au niveau du curseur
+void build_defense(const defense_type_t *defense_type);
+// Affiche le menu de selection de defense
+void    display_selection();
+// Cache le menu de selection de defense
+void hide_selection();
+// Augmente la selection de 1 (et update le selecteur graphique)
+void augment_selection();
+// Diminue la selection de 1 (et update le selecteur graphique)
+void diminish_selection();
 /*****************
  ***MONSTER POOL***
  ******************/
@@ -118,7 +136,7 @@ void         main_loop(uint    difficulty);
  *
  * @param pool_size The maximum amount of monster that can be allocated inside the pool
  */
-void         monster_pool_create(uint32_t    pool_size);
+void         monster_pool_create(uint32_t pool_size);
 
 // @brief Cleans up and frees the memory of the monster pool
 void         monster_pool_destroy(void);
