@@ -11,6 +11,8 @@ uint cursor_x, cursor_y; //position du curseur
 bool cursor_is_shown;
 pixel_t cursor_pixel;
 
+// Taille de la zone réservée à droite
+int reserved = 20;
 
 monster_t *monster_pool_head;
 void **monster_memories         = NULL;
@@ -147,7 +149,6 @@ int    main()
     //*initialise les variables globales*
 
     //creation du background
-    int reserved = 20;
     //taille de l'arène
     arena_size.col    = termsize.col - reserved;
     arena_size.stride = arena_size.col;
@@ -281,9 +282,9 @@ void    display_selection()
         }
         selected = false;
     }
-    uint32_t x_pos = termsize.col - 20;
+    uint32_t x_pos = termsize.col - reserved;
     uint32_t y_pos = 0;
-    compose_del_area(COMPOSE_UI, x_pos, x_pos + 15, 0, 30);
+    compose_del_area(COMPOSE_UI, x_pos, x_pos + reserved, 0, 30);
     if(defense_selection_mode)
     {
         uint32_t height = y_pos;
