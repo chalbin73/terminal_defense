@@ -1,16 +1,17 @@
-#define _POSIX_C_SOURCE 199309L //sinon, nanosleep n'est pas définie (et usleep non plus) 
-								//(et je ne comprend pas quelle fonction on devrait utiliser)
+#define _POSIX_C_SOURCE 199309L //sinon, nanosleep n'est pas définie (et usleep non plus)
+                                //(et je ne comprend pas quelle fonction on devrait utiliser)
 
 #ifndef COMMONH
 #define COMMONH
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 
 
 #if defined(__unix__) || (defined (__APPLE__) && defined ( __MACH__) )
-    #define SYSTEM_POSIX    1
+	#define SYSTEM_POSIX    1
 	#define SYSTEM_WINDOWS  0
 	#include <unistd.h>
 	#include <time.h>
@@ -25,7 +26,7 @@
 #endif
 
 //raccourcis d'écriture
-typedef unsigned int uint ;
+typedef unsigned int uint;
 extern char* EXIT_MSG;
 
 //associé a un tableau
@@ -36,8 +37,11 @@ typedef struct {
 	uint col;
 	uint row;
 	uint stride;
-} tab_size_t; 
-
+} tab_size_t;
+typedef struct {
+	int32_t x;
+	int32_t y;
+} coordonee_t;
 //Global var
 extern char* EXIT_MSG;
 
@@ -49,4 +53,11 @@ int wait(long unsigned int ms);
 void* safe_malloc(size_t size);
 //pareil pour realloc
 void* safe_realloc(void* ptr,size_t new_size);
+/* @brief renvoi l'offset associé a un couple coo-stride
+ *
+ * @param coo coordonée de demande
+ * @param stride stride (écart entre chaque ligne) du tableau associé
+ * @return l'indice d'accès dans le tableau
+ */
+int32_t offset_of(coordonee_t coo,int32_t stride);
 #endif //def COMMONH

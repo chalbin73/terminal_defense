@@ -71,10 +71,10 @@ bool pix_equal(pixel_t pix1, pixel_t pix2);
 
 //séléctionne une sous image (renvoie une image "rognée" / "masqué"). La première image reste valide
 //cette copie est fantôme et touts changement a l'image renvoyée se repercute sur l'image en paramettre
-picture_t pict_crop_bound(picture_t pict, uint xmin, uint xmax, uint ymin, uint ymax);
-picture_t pict_crop_size(picture_t pict, uint xmin, uint col, uint ymin, uint row);
+picture_t pict_crop_bound(picture_t pict, coordonee_t min, coordonee_t max);
+picture_t pict_crop_size(picture_t pict, coordonee_t min, coordonee_t size);
 //@brief mets le curseur a la position x,y sur le terminal
-void go_to(int x,int y);
+void go_to(coordonee_t pos);
 //@brief avance le curseur de nb char (vers la droite)
 void advance_cursor(uint nb);
 //set la couleur d'affichage
@@ -82,7 +82,7 @@ void set_color(int color);
 //set la couleur d'affichage background
 void set_color_background(int color);
 //affiche sur le terminal une image a une position donnée
-void pict_direct_display(picture_t pict, uint x, uint y);
+void pict_direct_display(picture_t pict, coordonee_t pos);
 
 
 /***************************
@@ -111,18 +111,22 @@ void compose_free();
  *
  * @param pict image a affciher
  * @param rank plan d'affichage
- * @param posx abscisse de la colonne gauche de l'image
- * @parma posy ordonée de la ligne supérieur de l'iamge
+ * @param pos position du coin superieur gauche de l'image
  */
-void compose_disp_pict(picture_t pict,COMPOSE_RANK rank,uint posx,uint posy);
+void compose_disp_pict(picture_t pict,COMPOSE_RANK rank,coordonee_t pos);
 // @brief affiche un pixel au plan demandé
-void compose_disp_pix(pixel_t pixel,COMPOSE_RANK rank,uint posx,uint posy);
+void compose_disp_pix(pixel_t pixel,COMPOSE_RANK rank,coordonee_t pos);
 // @brief calcule les changements a la position x,y
-void compose_have_changed(int posx,int posy);
+void compose_have_changed(coordonee_t pos);
 // @brief Affiche a l'écran les changements
 void compose_refresh();
 // @brief efface un pixel
-void compose_del_pix(COMPOSE_RANK rank,int posx,int posy);
-// @brief efface une zone
-void compose_del_area(COMPOSE_RANK rank,int minx, int maxx, int miny, int maxy);
+void compose_del_pix(COMPOSE_RANK rank,coordonee_t pos);
+/* @brief efface une zone
+ *
+ * @param rank rang dans lequel éffacer
+ * @param min position du coin superieur gauche de la zone a éffacer
+ * @param max position du coin superieur droit de la zone a éffacer
+ */
+void compose_del_area(COMPOSE_RANK rank,coordonee_t min, coordonee_t max);
 #endif //def GRAPHICALH

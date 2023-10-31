@@ -169,8 +169,7 @@ bool    pix_equal(pixel_t pix1, pixel_t pix2)
     return true;
 }
 
-
-picture_t    pict_crop_bound(picture_t pict, uint xmin, uint xmax, uint ymin, uint ymax)
+picture_t pict_crop_bound(picture_t pict, coordonee_t min, coordonee_t max)
 {
     //coupe les cotés d'une image, sans copier les données
     //(une modification de cette image modifiera l'image de départ)
@@ -178,33 +177,34 @@ picture_t    pict_crop_bound(picture_t pict, uint xmin, uint xmax, uint ymin, ui
            {
                .size =
                {
-                   .col    = xmax - xmin + 0,
-                   .row    = ymax - ymin + 1,
+                   .col    = max.x - min.x + 1,
+                   .row    = max.y - min.y + 1,
                    .stride = pict.size.stride
                },
-               .data = pict.data + xmin + pict.size.stride * ymin
+               .data = &pict.data[offset_of(min, pict.size.stride)]
            };
 }
-picture_t    pict_crop_size(picture_t pict, uint xmin, uint col, uint ymin, uint row)
+
+picture_t    pict_crop_size(picture_t pict, coordonee_t min, coordonee_t size)
 {
     //coupe les cotés d'une image, sans copier les données
     return (picture_t)
            {
                .size =
                {
-                   .col    = col,
-                   .row    = row,
+                   .col    = size.x,
+                   .row    = size.y,
                    .stride = pict.size.stride
                },
-               .data = pict.data + xmin + pict.size.stride * ymin
+               .data = &pict.data[offset_of(min, pict.size.stride)]
            };
 }
 
-void    go_to(int ligne, int colonne)
+void    go_to(coordonee_t pos)
 {
     //mets le curseur a la position demandée sur le terminal
     //le terminal compte a partir de 1, C a partir de 0, donc on ajoute 1
-    printf("\e[%i;%if", ligne + 1, colonne + 1);
+    printf("\e[%i;%if", pos.y + 1, pos.x + 1);
 }
 void    advance_cursor(uint    nb)
 {
@@ -249,7 +249,7 @@ void    set_color_background(int    color)
     }
 }
 
-void    pict_direct_display(picture_t pict, uint ligne, uint colonne)
+void    pict_direct_display(picture_t pict, coordonee_t pos)
 {
     //affiche sur le terminal une image a une position donnée
 
@@ -280,7 +280,7 @@ void    pict_direct_display(picture_t pict, uint ligne, uint colonne)
                 if (ecart==-1)
                 {
                     //on a changé de ligne depuis le dernier char affiché
-                    go_to(i + ligne, j + colonne);
+                    go_to((coordonee_t){.x=j+pos.x,  .y=i+pos.y});
                 }
                 else
                 {
@@ -318,34 +318,34 @@ void    compose_free()
     compositor_stride = 0;
 }
 //donne une image au compositeur
-void compose_disp_pict(picture_t pict,COMPOSE_RANK rank,uint posx,uint posy){
+void compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos){
 	for (int i=0; i<pict.size.row; i++){
 		//on copie l'image a l'aide de memcpy (copie par ligne entière)
 		//dans la mémoire du compositeur
 
 		//                        colonne        ligne           rang (profondeur) de l'image
-		memcpy(&compositor_pixels[posx + (i+posy)*termsize.stride + rank*compositor_stride], //destination
+		memcpy(&compositor_pixels[pos.x + (i+pos.y)*termsize.stride + rank*compositor_stride], //destination
 		       &pict.data[i*pict.size.stride],                                               //source
 		       sizeof(pixel_t)*pict.size.col);                                               //nombre d'octets a copier
 		//puis on calcule les changements éventuels
-		for (int j=posx; j<posx+pict.size.col; j++){
-			compose_have_changed(j,i+posy);
+		for (int j=pos.x; j<pos.x+pict.size.col; j++){
+			compose_have_changed((coordonee_t){j,i+pos.y});
 		}
 	}
 }
 
 //donne un seul pixel au compositeur
-void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, uint posx, uint posy)
+void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos)
 {
-    compositor_pixels[posx + posy * termsize.stride + rank * compositor_stride] = pixel;
-    compose_have_changed(posx, posy);
+    compositor_pixels[pos.x + pos.y * termsize.stride + rank * compositor_stride] = pixel;
+    compose_have_changed(pos);
 }
 
 //calcule les changements a la position demandée
-void    compose_have_changed(int posx, int posy)
+void    compose_have_changed(coordonee_t pos)
 {
     //emplacement du pixel dans une image
-    int offshet = posx + posy * termsize.stride;
+    int offshet = offset_of(pos,termsize.stride);
 
     //calcul du nouveau pixel
     int rank      = COMPOSE_UI;
@@ -380,25 +380,25 @@ void    compose_refresh()
         .size = termsize,
         .data = &compositor_pixels[compositor_stride * COMPOSE_CHANGES],
     };
-    pict_direct_display(changes, 0, 0);
+    pict_direct_display(changes, (coordonee_t){0,0});
     fflush(stdout);
     //on reset les changements (puisqu' on vient de les afficher)
     memset( changes.data, 0, compositor_stride * sizeof(pixel_t) );
 
 }
 //efface un pixel
-void    compose_del_pix(COMPOSE_RANK rank, int posx, int posy)
+void    compose_del_pix(COMPOSE_RANK rank, coordonee_t pos)
 {
-    compositor_pixels[posx + posy * termsize.stride + rank * compositor_stride].c1 = '\0';
-    compose_have_changed(posx, posy);
+    compositor_pixels[pos.x + pos.y * termsize.stride + rank * compositor_stride].c1 = '\0';
+    compose_have_changed(pos);
 }
-void    compose_del_area(COMPOSE_RANK rank, int minx, int maxx, int miny, int maxy)
+void    compose_del_area(COMPOSE_RANK rank, coordonee_t min, coordonee_t max)
 {
-    for (int x=minx; x<=maxx; x++)
+    for (int x=min.x; x<=max.x; x++)
     {
-        for (int y=miny; y<=maxy; y++)
+        for (int y=min.y; y<=max.y; y++)
         {
-            compose_del_pix(rank, x, y);
+            compose_del_pix(rank, (coordonee_t){x,y});
         }
     }
 }

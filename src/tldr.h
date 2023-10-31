@@ -19,6 +19,7 @@ typedef enum
 	DIR_DOWN  = 1,
 	DIR_RIGHT = 2,
 	DIR_LEFT  = 3,
+	DIR_NOWHERE=4,//valeur spéciale, indiquant un manque d'information
 } DIRECTION;
 typedef enum {
 	GAME_STOPED, //pas de partie en cours
@@ -41,7 +42,7 @@ typedef struct
 } monster_type;
 typedef struct monster_t
 {
-	monster_type       *type;
+	const monster_type *type;
 	uint vie;
 	//pointeur vers les autres monstres dans la même case
 	//permet de "simplifier" le stockage des monstre a une certaine position
@@ -56,13 +57,13 @@ typedef struct
 	uint max_life;
 	uint damage;
 	uint range;
-	char      *ui_txt;
+	const char *ui_txt;
 
 } defense_type_t;
 
 typedef struct
 {
-	defense_type_t   *type;
+	const defense_type_t *type;
 	uint life;
 } defense_t;
 
@@ -78,33 +79,53 @@ typedef struct defence_choice_tree_t
 	uint32_t defense_count;
 	const defense_type_t                     **defenses;
 } defence_choice_tree_t;
-
+typedef struct {
+	uint64_t distance;
+	DIRECTION next;
+} pathfinder_data;
 /***********************************
  ***FONCTIONS UTILITAIRES DE BASES***
  ************************************/
 
 // @brief free tout notre bordel a la fin du programme
 void         cleanup();
+
+/* @brief renvoie les coordonée du voisin (positions dans l'arène)
+ *
+ * @param coo coordonée pour laquelle on demande un voisin
+ * @param neighbor direction du voisin demandé
+ * @return les coordonée du voisin (si il existe)
+ *
+ * @note renvoie NO_COORDINATE si le voisin n'éxsite pas
+ */
+coordonee_t neighbor_of(coordonee_t coo, DIRECTION neighbor);
+
+
 /* @brief affiche un monstre
  *
  * @param monster monstre a afficher
- * @param posx colonne d'affichage
- * @param posy ligne d'affichage
+ * @param pos position d'affichage
  */
-void         print_monster(monster_t *monster, int posx, int posy);
+void         print_monster(monster_t *monster, coordonee_t pos);
 /* @brief deplace un monstre
  *
  * @param monster monstre a déplacer
  * @param previous_ptr pointeur sur le (pointeur de) monstre précédant
- * @param new_x colonne dans laquelle déplacer le monstre
- * @param new_y ligne dans laquelle déplacer le monstre
+ * @param new_pos position à laquelle déplacer le monstre
  */
-void         move_monster(monster_t *monster, monster_t **previous_ptr, uint new_x, uint new_y);
+void         move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t new_pos);
 // @brief vide l'input clavier
 void         clear_input();
 // @brief bouge le curseur dans la direction demandée
 void         move_cursor(DIRECTION dir);
-
+/*** PATHFINDER ***/
+// @brief (Ré)initialse le moteur de pathfinding
+void path_reinit();
+/* @brief Update le pathfinder a partir de la coordonée en paramètre
+ *
+ * @param position Position a partir de laquelle update le pathfinder
+ */
+void update_pathfinder_from(coordonee_t position);
 /******************
  ***MOTEUR DE JEU***
  *******************/

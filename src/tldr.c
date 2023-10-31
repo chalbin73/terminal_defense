@@ -7,7 +7,7 @@ char *EXIT_MSG;
 
 uint64_t joueur_vie, joueur_score, turn;
 tab_size_t arena_size;
-uint cursor_x, cursor_y; //position du curseur
+coordonee_t cursor_pos; //position du curseur
 bool cursor_is_shown;
 pixel_t cursor_pixel;
 
@@ -22,27 +22,92 @@ uint32_t alloced_monsters       = 0;
 
 //associe a chaque case de l'arenne un monstre/une construction.
 //chaque monstre pointe sur les autres monstres dans la même case (liste chainée)
-//une seule construction est autorisée par cases
 monster_t **monster_positions;
-
-
-// Est vraie si on est en train de selectionner une defence
+//associe a chaque case de l'arenne une défense
+defense_t *defense_array;
+//associe a chaque case de l'arenne une distance de la base et la direction dans laquelle aller
+//pour s'en rapprocher (pathfinding)
+pathfinder_data *pathfinder_array;
+//utilisé par les fonction du pathfinder
+//mais comme c'est un gros tableau, on ne l'alloue qu'une fois au debut
+coordonee_t *position_list;
+//la taille du tableau ci dessus
+uint32_t pos_list_size;
+//coordonées de la base
+coordonee_t base_coordinate;
+// État du jeu
 GAME_STATE game_state             = GAME_STOPED;
-const defence_choice_tree_t *shown_tree = NULL; // L'abre de selection presentement affiché
+//arbre de séléction des défense actuellement affiché
+const defence_choice_tree_t *shown_tree = NULL;
 // Index selectionné dans le menu
 int32_t sel_index                       = 0;
 static const pixel_t selection_indicator =
 {
 	.background_color = COL_DEFAULT,
 	.color            = COL_GREEN,
-	.c1               = 0x2a,
+	.c1               = '*',
 	.c2               = 0,
+};
+static const coordonee_t NO_COORDINATE=(coordonee_t){
+	.x=-1,
+	.y=0,
 };
 
 
 /***********************************
  ***FONCTIONS UTILITAIRES DE BASES***
  ************************************/
+
+//renvoi l'offset associé a un couple coo-stride
+int32_t offset_of(coordonee_t coo,int32_t stride){
+	return coo.x + coo.y*stride;
+}
+
+//renvoie les coordonée du voisin (positions dans l'arène)
+coordonee_t neighbor_of(coordonee_t coo, DIRECTION neighbor){
+	switch (neighbor) {
+	case DIR_LEFT:
+		//a gauche => posx-=1
+		if (coo.x==0) return NO_COORDINATE;
+		coo.x-=1;
+		return coo;
+	case DIR_RIGHT:
+		//a droite => posx+=1
+		if (coo.x==arena_size.col-1) return NO_COORDINATE;
+		coo.x+=1;
+		return coo;
+	case DIR_UP:
+		//en haut => posy-=1
+		if (coo.y==0) return NO_COORDINATE;
+		coo.y-=1;
+		return coo;
+	case DIR_DOWN:
+		//en bas => posy+=1
+		if (coo.y==arena_size.row-1) return NO_COORDINATE;
+		coo.y+=1;
+		return coo;
+	default:
+		return NO_COORDINATE;
+	}
+}
+
+//renvoie la direction opposé
+DIRECTION oposite_direction(DIRECTION dir){
+	switch (dir) {
+	case DIR_DOWN:
+		return DIR_UP;
+	case DIR_UP:
+		return DIR_DOWN;
+	case DIR_RIGHT:
+		return DIR_LEFT;
+	case DIR_LEFT:
+		return DIR_RIGHT;
+	default:
+		return DIR_NOWHERE;
+	}
+}
+
+
 
 void    cleanup()
 {
@@ -53,25 +118,32 @@ void    cleanup()
 	graphical_cleanup();
 	monster_pool_destroy();
 	free(monster_positions);
-	//exit reason
+	free(defense_array);
+	free(pathfinder_array);
+	//affiche la raison d'éxit
 	printf("%s\n", EXIT_MSG);
 }
 
-void    print_monster(monster_t *monster, int posx, int posy)
+//affiche un monstre (et clear si monster et le pointeur null)
+void    print_monster(monster_t *monster, coordonee_t pos)
 {
 	//affiche un monstre
-	compose_disp_pix(monster->type->sprite, COMPOSE_ARENA, posx, posy);
+	if (monster==NULL){
+		compose_del_pix(COMPOSE_ARENA,pos);
+	}else {
+		compose_disp_pix(monster->type->sprite, COMPOSE_ARENA, pos);
+	}
 }
 
-void    move_monster(monster_t *monster, monster_t **previous_ptr, uint new_x, uint new_y)
+void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t new_pos)
 {
 	//on retire le montre de son ancienne case
 	//en faisant pointer le précédant sur le suivant
 	*previous_ptr = monster->next_monster_in_room;
 	//puis on ajoute le monstre au début de la liste de la case suivante
 	//et on fait pointer le monstre sur les autres de la case
-	monster->next_monster_in_room                        = monster_positions[new_x + new_y * arena_size.stride];
-	monster_positions[new_x + new_y * arena_size.stride] = monster;
+	monster->next_monster_in_room                        = monster_positions[offset_of(new_pos, arena_size.stride)];
+	monster_positions[offset_of(new_pos, arena_size.stride)] = monster;
 }
 
 //enlève tout les inputs claviers non traitées
@@ -83,14 +155,17 @@ void    clear_input()
 		//le but étant de vider stdin, on ne fais rien avec les charactères ...
 	}
 }
+
+/*** CURSOR ***/
+
 void    show_cursor()
 {
-	compose_disp_pix(cursor_pixel, COMPOSE_UI, cursor_x, cursor_y);
+	compose_disp_pix(cursor_pixel, COMPOSE_UI, cursor_pos);
 	cursor_is_shown = true;
 }
 void    hide_cursor()
 {
-	compose_del_pix(COMPOSE_UI, cursor_x, cursor_y);
+	compose_del_pix(COMPOSE_UI, cursor_pos);
 	cursor_is_shown = false;
 }
 void    blink_cursor()
@@ -108,34 +183,113 @@ void    blink_cursor()
 void    move_cursor(DIRECTION dir)
 {
 	hide_cursor();
-	switch (dir)
-	{
-	case DIR_UP:
-		if (cursor_y>1)
-		{
-			cursor_y -= 1;
-		}
-		break;
-	case DIR_DOWN:
-		if (cursor_y<arena_size.row - 2)
-		{
-			cursor_y += 1;
-		}
-		break;
-	case DIR_LEFT:
-		if (cursor_x>1)
-		{
-			cursor_x -= 1;
-		}
-		break;
-	case DIR_RIGHT:
-		if (cursor_x<arena_size.col - 2)
-		{
-			cursor_x += 1;
-		}
+	coordonee_t new_pos=neighbor_of(cursor_pos, dir);
+	if (new_pos.x!=-1) {
+		cursor_pos=new_pos;
 	}
+	show_cursor();
 }
+/*** PATHFINDER ***/
+// (re) initilaise le pathfinder array
+void path_reinit(){
+	for (int i=0; i<arena_size.col*arena_size.row; i++) {
+		pathfinder_array[i]=(pathfinder_data){
+			.next=DIR_NOWHERE,
+			.distance=UINT64_MAX,
+		};
+	}
+	update_pathfinder_from(base_coordinate);
+}
+//update le pathfinder a partir de la position demandée
+void update_pathfinder_from(coordonee_t position){
+	//indice déja traité
+	uint borne_inf=0;
+	//indice jusqu' auquel la liste est remplie
+	uint borne_sup=1;
 
+	//la ou nous a demander d'update
+	position_list[0]=position;
+	pathfinder_array[offset_of(position, arena_size.stride)].next=DIR_NOWHERE;
+
+	//utilisé dans la boucle
+	pathfinder_data here_before;
+	pathfinder_data here_after;
+
+	//tant qu'il reste des case a traiter
+	while (borne_inf!=borne_sup) {
+		//position de la case a traiter
+		position=position_list[borne_inf];
+		//indice dans les tableau
+		here_before=pathfinder_array[offset_of(position, arena_size.stride)];
+
+		if (here_before.next!=DIR_NOWHERE){
+			//cette position a déja été update (présente plusieurs fois dans la liste), on skip
+			borne_inf++;
+			if (borne_inf==pos_list_size)borne_inf=0;
+			continue;
+		}//else ....
+
+		//position de la base (c'est ici que les mobs doivent arriver: distance de 0)
+		if (position.x==base_coordinate.x && position.y==base_coordinate.y){
+			here_after=(pathfinder_data){
+				.distance=0,
+				.next=DIR_RIGHT, //on sort de l'écran, mais cela n'arrive que si la base est détruite (le jeu s'arrête de toute facon)
+			};
+		} else {
+			here_after=(pathfinder_data){
+				.distance=UINT64_MAX,
+				.next=DIR_NOWHERE,
+			};
+			for (DIRECTION direction=DIR_UP; direction<DIR_NOWHERE; direction++) {
+				//pour chaque direction cardinale
+				coordonee_t neighbor=neighbor_of(position, direction);
+				if (neighbor.x!=-1){//si le voisin existe
+					int32_t neighbor_offset=offset_of(neighbor, arena_size.stride);
+					//si le voisin ne pointe pas sur nous et n'est pas undef/en cours de recalcul (DIR_NOWHERE)
+					if (pathfinder_array[neighbor_offset].next != oposite_direction(direction)
+					    && pathfinder_array[neighbor_offset].next != DIR_NOWHERE){
+						//si il est intéréssant
+						if (pathfinder_array[neighbor_offset].distance < here_after.distance){
+							//on passe par lui
+							here_after=(pathfinder_data){
+								.distance=pathfinder_array[neighbor_offset].distance,
+								.next=direction
+							};
+						}
+					}
+				}
+			}//fin du for
+
+			here_after.distance+=1;
+			if (defense_array[offset_of(position, arena_size.stride)].type != NULL){
+				//on est sur une défense, on augmente la "taille" du chemin selon la vie
+				here_after.distance+=defense_array[offset_of(position, arena_size.stride)].life/100;
+			}
+		}//fin du if(pos_base)
+
+		pathfinder_array[offset_of(position, arena_size.stride)]=here_after;
+		//si on est undef ou qu'on s'est amélioré
+		if (here_after.next == DIR_NOWHERE || here_after.distance<here_before.distance){
+			//on dit a tous les voisins de s'update
+			for (DIRECTION direction=DIR_UP; direction<DIR_NOWHERE; direction++) {
+				//pour chaue direction cardinale
+				coordonee_t neighbor=neighbor_of(position, direction);
+				if (neighbor.x!=-1){    //si le voisin existe
+					borne_sup+=1;
+					if (borne_sup==pos_list_size)borne_sup=0;
+					position_list[borne_sup]=neighbor;
+					//si se voisin pointait sur nous, on le fait pointer sur rien
+					if (pathfinder_array[offset_of(neighbor,arena_size.stride)].next==oposite_direction(direction)){
+						pathfinder_array[offset_of(neighbor,arena_size.stride)].next=DIR_NOWHERE;
+					}
+				}
+			}//fin du for
+		}
+
+		borne_inf++;
+		if (borne_inf==pos_list_size)borne_inf=0;
+	}// fin du while
+}
 
 /******************
  ***MOTEUR DE JEU***
@@ -182,7 +336,7 @@ int    main()
 			{
 				pixel.background_color = COL_BOARD_BACKGROUND_2;
 			}
-			compose_disp_pix(pixel, COMPOSE_BACK, i, j);
+			compose_disp_pix(pixel, COMPOSE_BACK, (coordonee_t){i,j});
 		}
 	}
 	pixel.background_color = COL_DEFAULT;
@@ -190,10 +344,9 @@ int    main()
 	{
 		for (int j = 0; j<termsize.row; j++)
 		{
-			compose_disp_pix(pixel, COMPOSE_BACK, i, j);
+			compose_disp_pix(pixel, COMPOSE_BACK, (coordonee_t){i,j});
 		}
 	}
-	//initialisation du curseur
 
 
 	monster_pool_create(200);
@@ -201,6 +354,15 @@ int    main()
 	monster_positions = safe_malloc(sizeof(monster_t *) * arena_size.row * arena_size.col);
 	memset(monster_positions, (long int)NULL, sizeof(monster_t *) * arena_size.row * arena_size.col);
 	//autre variables globales
+	defense_array=safe_malloc(arena_size.col*arena_size.row*sizeof(defense_t));
+	pathfinder_array=safe_malloc(arena_size.col*arena_size.row*sizeof(pathfinder_data));
+	position_list=safe_malloc(arena_size.col*arena_size.row*10*sizeof(coordonee_t));
+	pos_list_size=arena_size.col*arena_size.row*10;
+	base_coordinate=(coordonee_t){
+		.x=arena_size.col-1,
+		.y=arena_size.row/2,
+	};
+
 	joueur_vie   = 1000;
 	joueur_score = 0;
 	cursor_pixel = (pixel_t)
@@ -269,10 +431,14 @@ void    treat_input()
 		}
 	}
 }
-//construit une defense
+//construit une defense a la position du curseur
 void build_defense(const defense_type_t *defense_type){
 	//**TODO**
-	compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, cursor_x, cursor_y);
+	defense_array[offset_of(cursor_pos, arena_size.stride)] = (defense_t){
+		.type=defense_type,
+		.life=defense_type->max_life,
+	};
+	compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, cursor_pos);
 }
 
 void select_defense(){
@@ -304,8 +470,8 @@ void    display_defense_selection_item(pixel_t icon, uint32_t indice)
 {
 	uint posx=termsize.col-reserved+1; //a gauche de la barre de droite
 	uint posy=termsize.row-indice*3-3; //en bas, par pas de 3 (taille d'un icone)
-	compose_disp_pict(frame, COMPOSE_UI, posx, posy);
-	compose_disp_pix(icon, COMPOSE_UI, posx + 1, posy + 1);
+	compose_disp_pict(frame, COMPOSE_UI, (coordonee_t){posx,posy});
+	compose_disp_pix(icon, COMPOSE_UI, (coordonee_t){posx + 1, posy + 1});
 }
 
 // Affiche le menu de selection de defense
@@ -326,38 +492,38 @@ void    display_selection()
 
 
 	//affichage de la selection de l'élément en bas
-	compose_disp_pix(selection_indicator, COMPOSE_UI, termsize.col-reserved, termsize.row-2);
+	compose_disp_pix(selection_indicator, COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2});
 
 }
 void hide_selection(){
 	//on clean l'entièreté de la colone de droite (ou il n'y a normalement que ca dans le niveau UI)
-	compose_del_area(COMPOSE_UI, termsize.col-reserved, termsize.col-1, 0, termsize.row-1);
+	compose_del_area(COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.col-1}, (coordonee_t){0, termsize.row-1});
 }
 
 
 void augment_selection()
 {
 	//on cache l'ancienne selection
-	compose_del_pix(COMPOSE_UI, termsize.col-reserved, termsize.row-2-3*sel_index);
+	compose_del_pix(COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});
 	sel_index++;
 	//si on dépasse le maximum, on retourne a 0
 	if (sel_index >= shown_tree->defense_count + shown_tree->sub_category_count){
 		sel_index=0;
 	}
 	//on affiche la nouvelle selection
-	compose_disp_pix(selection_indicator, COMPOSE_UI, termsize.col-reserved, termsize.row-2-3*sel_index);
+	compose_disp_pix(selection_indicator, COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});
 }
 void diminish_selection()
 {
 	//on cache l'ancienne selection
-	compose_del_pix(COMPOSE_UI, termsize.col-reserved, termsize.row-2-3*sel_index);
+	compose_del_pix(COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});
 	sel_index--;
 	//si passe en dessous de 0, on retourne au maximum
 	if (sel_index < 0){
 		sel_index = shown_tree->defense_count + shown_tree->sub_category_count-1;
 	}
 	//on affiche la nouvelle selection
-	compose_disp_pix(selection_indicator, COMPOSE_UI, termsize.col-reserved, termsize.row-2-3*sel_index);
+	compose_disp_pix(selection_indicator, COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});
 }
 
 //main game loop
@@ -366,8 +532,8 @@ void    main_loop(uint difficulty)
 {
 	while (joueur_vie>0)
 	{
+		if (turn%2)blink_cursor();
 		treat_input();
-		if (turn%2){blink_cursor();}
 		compose_refresh();
 
 		wait(100);
