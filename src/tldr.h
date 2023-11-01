@@ -107,13 +107,15 @@ coordonee_t neighbor_of(coordonee_t coo, DIRECTION neighbor);
  * @param pos position d'affichage
  */
 void         print_monster(monster_t *monster, coordonee_t pos);
+// @brief affiche le premier monstre a la position demandée
+void print_monster_at(coordonee_t pos);
 /* @brief deplace un monstre
  *
  * @param monster monstre a déplacer
  * @param previous_ptr pointeur sur le (pointeur de) monstre précédant
  * @param new_pos position à laquelle déplacer le monstre
  */
-void         move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t new_pos);
+void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction);
 // @brief vide l'input clavier
 void         clear_input();
 // @brief bouge le curseur dans la direction demandée
@@ -197,6 +199,7 @@ extern const monster_type armored;
 
 extern const defense_type_t wall;
 extern const defense_type_t basic_turret;
+extern const defense_type_t la_base;
 
 extern const picture_t frame;
 extern const defence_choice_tree_t main_selection_tree;

@@ -348,7 +348,7 @@ void    compose_have_changed(coordonee_t pos)
     int offshet = offset_of(pos,termsize.stride);
 
     //calcul du nouveau pixel
-    int rank      = COMPOSE_UI;
+    COMPOSE_RANK rank      = COMPOSE_UI;
     pixel_t pixel =
     {
         .c1 = '\0'
@@ -362,7 +362,7 @@ void    compose_have_changed(coordonee_t pos)
     //si la couleur de fond et par défault, on va chercher celle des pixels en dessous
     while (rank<=COMPOSE_BACK && pixel.background_color==COL_DEFAULT)
     {
-		if (compositor_pixels[ offshet + compositor_stride * rank ].background_color != '\0') //si le pixel n'est pas transparent, on prend sa couleur de background
+		if (compositor_pixels[ offshet + compositor_stride * rank ].c1 != '\0') //si le pixel n'est pas transparent, on prend sa couleur de background
 			pixel.background_color = compositor_pixels[ offshet + compositor_stride * rank ].background_color;
 		rank += 1;
     }

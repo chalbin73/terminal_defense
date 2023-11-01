@@ -5,7 +5,7 @@
  ************************/
 char *EXIT_MSG;
 
-uint64_t joueur_vie, joueur_score, turn;
+uint64_t joueur_vie, joueur_score, turn, joueur_ressources;
 tab_size_t arena_size;
 coordonee_t cursor_pos; //position du curseur
 bool cursor_is_shown;
@@ -108,7 +108,6 @@ DIRECTION oposite_direction(DIRECTION dir){
 }
 
 
-
 void    cleanup()
 {
 	//fonction appellé a la sortie du programme
@@ -123,6 +122,10 @@ void    cleanup()
 	//affiche la raison d'éxit
 	printf("%s\n", EXIT_MSG);
 }
+//affiche le premier monstre a la position demandée
+void print_monster_at(coordonee_t pos){
+	print_monster(monster_positions[offset_of(pos,arena_size.stride)], pos);
+}
 
 //affiche un monstre (et clear si monster et le pointeur null)
 void    print_monster(monster_t *monster, coordonee_t pos)
@@ -135,15 +138,26 @@ void    print_monster(monster_t *monster, coordonee_t pos)
 	}
 }
 
-void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t new_pos)
+void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction)
 {
 	//on retire le montre de son ancienne case
 	//en faisant pointer le précédant sur le suivant
 	*previous_ptr = monster->next_monster_in_room;
-	//puis on ajoute le monstre au début de la liste de la case suivante
+	//on update l'affichage
+	print_monster_at(monster_pos);
+	//on obtient la nouvelle case
+	coordonee_t new_pos=neighbor_of(monster_pos, direction);
+	if (new_pos.x==-1){
+		//ceci est un bug
+		EXIT_MSG="bugged monster moved out of screen! Report a pthfinding bug";
+		exit(2);
+	}
+	//on ajoute le monstre au début de la liste de la case suivante
 	//et on fait pointer le monstre sur les autres de la case
 	monster->next_monster_in_room                        = monster_positions[offset_of(new_pos, arena_size.stride)];
 	monster_positions[offset_of(new_pos, arena_size.stride)] = monster;
+	//et on update l'affichage
+	print_monster(monster, new_pos);
 }
 
 //enlève tout les inputs claviers non traitées
@@ -364,7 +378,12 @@ int    main()
 	};
 
 	joueur_vie   = 1000;
+	joueur_ressources = 500;
 	joueur_score = 0;
+
+	cursor_pos=base_coordinate;
+	build_defense(&la_base);
+
 	cursor_pixel = (pixel_t)
 	{
 		.c1               = ' ',
@@ -433,12 +452,17 @@ void    treat_input()
 }
 //construit une defense a la position du curseur
 void build_defense(const defense_type_t *defense_type){
-	//**TODO**
+	if (joueur_ressources<defense_type->cost) {
+		//not enough resources
+		return;
+	}
+	joueur_ressources-=defense_type->cost;
 	defense_array[offset_of(cursor_pos, arena_size.stride)] = (defense_t){
 		.type=defense_type,
 		.life=defense_type->max_life,
 	};
 	compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, cursor_pos);
+	update_pathfinder_from(cursor_pos);
 }
 
 void select_defense(){
@@ -497,7 +521,7 @@ void    display_selection()
 }
 void hide_selection(){
 	//on clean l'entièreté de la colone de droite (ou il n'y a normalement que ca dans le niveau UI)
-	compose_del_area(COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.col-1}, (coordonee_t){0, termsize.row-1});
+	compose_del_area(COMPOSE_UI, (coordonee_t){termsize.col-reserved, 0}, (coordonee_t){termsize.col-1, termsize.row-1});
 }
 
 
