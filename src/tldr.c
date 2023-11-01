@@ -138,6 +138,23 @@ void    print_monster(monster_t *monster, coordonee_t pos)
 	}
 }
 
+//fais spawn un monstre
+void spawn_monster(monster_type *type, coordonee_t position){
+	monster_t *monster=monster_pool_alloc();
+	*monster=(monster_t){
+		.type=type,
+		.vie=type->max_life,
+		.next_monster_in_room=monster_positions[offset_of(position, arena_size.stride)],
+	};
+	monster_positions[offset_of(position, arena_size.stride)]=monster;
+	print_monster(monster,position);
+}
+//finalise la mort d'un monstre
+void kill_monster(monster_t *monster, monster_t **previous_ptr){
+	*previous_ptr=monster->next_monster_in_room;
+	monster_pool_dealloc(monster);
+}
+
 void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction)
 {
 	//on retire le montre de son ancienne case

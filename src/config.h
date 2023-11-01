@@ -25,13 +25,13 @@ typedef enum COLOR {
 	COL_MAGENTA   =5,
 	COL_CYAN      =6,
 	COL_WHITE     =7,
-	COL_GRAY_DARK =235,
+	COL_GRAY_DARK =233,
 	COL_GRAY      =241,
 	COL_GRAY_LIGHT=247,
 
 	//* Couleurs modifiables *
 	COL_CURSOR = COL_GREEN,                  //couleur du curseur
-	COL_BACKGROUND = COL_BLACK,				 //couleur du fond (text)
+	COL_BACKGROUND = COL_BLACK,              //couleur du fond (text)
 	COL_BOARD_BACKGROUND_1 = COL_GRAY_DARK,  //couleurs des cases du damier
 	COL_BOARD_BACKGROUND_2 = COL_BLACK,
 	COL_TEXT = COL_WHITE,                    //couleur du texte

@@ -109,10 +109,23 @@ coordonee_t neighbor_of(coordonee_t coo, DIRECTION neighbor);
 void         print_monster(monster_t *monster, coordonee_t pos);
 // @brief affiche le premier monstre a la position demandée
 void print_monster_at(coordonee_t pos);
+/* @brief fais apparaitre un monstre
+ *
+ * @param type type de monstre a faire apparaitre
+ * @param position endroit ou il faut faire apparaitre le monstre
+ */
+void spawn_monster(monster_type *type, coordonee_t position);
+/* @brief finalise la mort d'un monstre (le free et le sort de monster_position)
+ *
+ * @param monster monstre a tuer
+ * @param previous_ptr pointeur sur le pointeur sur ce monstre dans la liste chainée de monster_position
+ */
+void kill_monster(monster_t *monster, monster_t **previous_ptr);
+
 /* @brief deplace un monstre
  *
  * @param monster monstre a déplacer
- * @param previous_ptr pointeur sur le (pointeur de) monstre précédant
+ * @param previous_ptr pointeur sur le pointeur sur ce monstre dans la liste chainée de monster_position
  * @param new_pos position à laquelle déplacer le monstre
  */
 void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction);
