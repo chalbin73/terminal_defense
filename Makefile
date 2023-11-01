@@ -1,4 +1,9 @@
-CFLAGS=-std=c99 -Wall -Werror -Wvla -Isrc/ 
+WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
+            -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations \
+            -Wredundant-decls -Wnested-externs -Winline -Wno-long-long \
+            -Wconversion -Wstrict-prototypes
+
+CFLAGS=-std=c99 $(WARNINGS) -Isrc/ 
 LDFLAGS=
 
 RELEASE_FLAGS=-O3
@@ -8,6 +13,11 @@ SOURCES=
 SOURCES+=common_and_ressources.c
 SOURCES+=graphical.c
 SOURCES+=tldr.c
+
+
+OBJECTS  := $(patsubst %.c,build/%.o,$(SOURCES))
+DEPFILES := $(patsubst %.o,%.d,$(OBJECTS))
+-include $(DEPFILES)
 
 .PHONY: all debug help
 
@@ -26,14 +36,14 @@ help:
 	@echo "    make clean       Cleans object files and executable"
 	@echo "    make help        Displays this help"
 
-tldr: $(foreach source,$(SOURCES),build/$(patsubst %.c,%.o,$(source)))
+tldr: $(OBJECTS)
 	$(CC) $^ $(LDFLAGS) -o tldr 
 
 build_dir:
 	@mkdir -p build
 		
-build/%.o: src/%.c | build_dir
-	$(CC) -o $@ $(CFLAGS) -c $<
+build/%.o: src/%.c Makefile build_dir
+	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 clean:
 	rm -rf build
