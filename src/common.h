@@ -27,7 +27,6 @@
 
 //raccourcis d'écriture
 typedef unsigned int uint;
-extern char* EXIT_MSG;
 
 //associé a un tableau
 //renseigne sa largeur (nb_col), hauteur(nb_row),et espacement entre chaque ligne (stride)
@@ -43,10 +42,10 @@ typedef struct {
 	int32_t y;
 } coordonee_t;
 //Global var
-extern char* EXIT_MSG;
+extern const char* EXIT_MSG;
 
 //attend ms milliseconde
-int wait(long unsigned int ms);
+int wait(long int ms);
 
 //malloc, en vérifiant que tout s'est bien passé
 //plante "proprement" si ce n'est pas le cas

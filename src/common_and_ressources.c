@@ -38,7 +38,7 @@ void   *safe_realloc(void *ptr, size_t new_size)
 }
 
 //attend ms milliseconde
-int    wait(unsigned long ms)
+int    wait(long ms)
 {
 	#if SYSTEM_POSIX
 	//nanosleep accept un struct en seconds et nanoseconds
@@ -65,9 +65,9 @@ const monster_type runner =
 	{
 		.color            = COL_RED,
 		.background_color = COL_DEFAULT,
-		.c1               = 0xe2, //≫
-		.c2               = 0x89,
-		.c3               = 0xab,
+		.c1               = '\xe2', //≫
+		.c2               = '\x89',
+		.c3               = '\xab',
 		.c4               = '\0',
 	},
 };
@@ -80,9 +80,9 @@ const monster_type armored =
 	{
 		.color            = COL_CYAN,
 		.background_color = COL_DEFAULT,
-		.c1               = 0xe2, //⇛
-		.c2               = 0x87,
-		.c3               = 0x9b,
+		.c1               = '\xe2', //⇛
+		.c2               = '\x87',
+		.c3               = '\x9b',
 		.c4               = '\0',
 	}
 };
@@ -98,10 +98,10 @@ const defense_type_t basic_wall =
 	{
 		.color            = COL_RED,
 		.background_color = COL_DEFAULT,
-		.c1               = 0xE2, //⣿
-		.c2               = 0xA3,
-		.c3               = 0xBF,
-		.c4               = 0,
+		.c1               = '\xE2', //⣿
+		.c2               = '\xA3',
+		.c3               = '\xBF',
+		.c4               = '\0',
 	},
 	.ui_txt               = "Basic walls"
 };
@@ -115,8 +115,8 @@ const defense_type_t basic_turret =
 	{
 		.color            = COL_CYAN,
 		.background_color = COL_DEFAULT,
-		.c1               = 0xc2, //¶
-		.c2               = 0xb6,
+		.c1               = '\xc2', //¶
+		.c2               = '\xb6',
 		.c3               = '\0',
 		.c4               = '\0',
 	},
@@ -132,9 +132,9 @@ const defense_type_t la_base =
 	{
 		.color            = COL_GREEN,
 		.background_color = COL_DEFAULT,
-		.c1               = 226, //⚑
-		.c2               = 154,
-		.c3               = 145,
+		.c1               = '\xe2', //⚑
+		.c2               = '\x9a',
+		.c3               = '\x91',
 		.c4               = 0,
 	},
 	.ui_txt               = "Your base, defend it!"
@@ -155,28 +155,28 @@ const picture_t frame =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x95,
-			.c3               = 0xad,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x95',
+			.c3               = '\xad',
+			.c4               = '\x00',
 		},
 		[1] =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x94,
-			.c3               = 0x80,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x94',
+			.c3               = '\x80',
+			.c4               = '\x00',
 		},
 		[2] =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x95,
-			.c3               = 0xae,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x95',
+			.c3               = '\xae',
+			.c4               = '\x00',
 		},
 
 		// LIGNE 1
@@ -184,28 +184,28 @@ const picture_t frame =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x94,
-			.c3               = 0x82,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x94',
+			.c3               = '\x82',
+			.c4               = '\x00',
 		},
 		[4] = // ESPACE
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0x20,
-			.c2               = 0x00,
-			.c3               = 0x00,
-			.c4               = 0x00,
+			.c1               = '\x20',
+			.c2               = '\x00',
+			.c3               = '\x00',
+			.c4               = '\x00',
 		},
 		[5] =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x94,
-			.c3               = 0x82,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x94',
+			.c3               = '\x82',
+			.c4               = '\x00',
 		},
 
 		// LIGNE 2
@@ -213,41 +213,47 @@ const picture_t frame =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x95,
-			.c3               = 0xb0,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x95',
+			.c3               = '\xb0',
+			.c4               = '\x00',
 		},
 		[7] =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x94,
-			.c3               = 0x80,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x94',
+			.c3               = '\x80',
+			.c4               = '\x00',
 		},
 		[8] =
 		{
 			.color            = COL_TEXT,
 			.background_color = COL_DEFAULT,
-			.c1               = 0xe2,
-			.c2               = 0x95,
-			.c3               = 0xaf,
-			.c4               = 0x00,
+			.c1               = '\xe2',
+			.c2               = '\x95',
+			.c3               = '\xaf',
+			.c4               = '\x00',
 		}
 	}
 };
 
+
 const defence_choice_tree_t main_selection_tree =
 {
-	.icon               = (pixel_t) {
-		.c1             = 'D', .color = COL_TEXT, .background_color = COL_DEFAULT
+	.icon               = {
+		.c1               = 'D',
+		.c2               = '\0',
+		.c3               = '\0',
+		.c4               = '\0',
+		.color            = COL_TEXT,
+		.background_color = COL_DEFAULT
 	},
 	.ui_txt             = "Defenses",
 
 	.defense_count = 2,
-	.defenses      = ( const defense_type_t * [2] )
+	.defenses      = (const defense_type_t * [2] )
 	{
 		[0] = &basic_turret,
 		[1] = &basic_wall,

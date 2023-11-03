@@ -57,9 +57,9 @@ typedef struct {
 //declaration de fonctions
 
 //mets en place les graphismes
-void init_graphical();
+void init_graphical(void);
 //appellé a la sortie, résponsable de clean les graphisme
-void graphical_cleanup();
+void graphical_cleanup(void);
 
 
 /*****************************************
@@ -104,9 +104,9 @@ typedef enum COMPOSE_RANK {
 } COMPOSE_RANK;
 
 // @brief initialise le compositeur
-void compose_init();
+void compose_init(void);
 // @brief free les variables du compositeur
-void compose_free();
+void compose_free(void);
 /* @brief affiche une image plan demandé
  *
  * @param pict image a affciher
@@ -119,7 +119,7 @@ void compose_disp_pix(pixel_t pixel,COMPOSE_RANK rank,coordonee_t pos);
 // @brief calcule les changements a la position x,y
 void compose_have_changed(coordonee_t pos);
 // @brief Affiche a l'écran les changements
-void compose_refresh();
+void compose_refresh(void);
 // @brief efface un pixel
 void compose_del_pix(COMPOSE_RANK rank,coordonee_t pos);
 /* @brief efface une zone

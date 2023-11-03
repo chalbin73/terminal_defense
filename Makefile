@@ -4,7 +4,7 @@ WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
             -Wconversion -Wstrict-prototypes
 
 CFLAGS=-std=c99 $(WARNINGS) -Isrc/ 
-LDFLAGS=
+LDFLAGS=${WARNINGS}
 
 RELEASE_FLAGS=-O3
 DEBUG_FLAGS=-g -Og

@@ -3,7 +3,7 @@
 /* ************************
  ***VARIABLES GLOBALES***
  ************************/
-char *EXIT_MSG;
+const char *EXIT_MSG;
 
 uint64_t joueur_vie, joueur_score, turn, joueur_ressources;
 tab_size_t arena_size;
@@ -108,7 +108,7 @@ DIRECTION oposite_direction(DIRECTION dir){
 }
 
 
-void    cleanup()
+void    cleanup(void)
 {
 	//fonction appellé a la sortie du programme
 
@@ -178,7 +178,7 @@ void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t m
 }
 
 //enlève tout les inputs claviers non traitées
-void    clear_input()
+void    clear_input(void)
 {
 	char poubelle[20];
 	while ( read(STDIN_FILENO, poubelle, 20) )
@@ -189,17 +189,17 @@ void    clear_input()
 
 /*** CURSOR ***/
 
-void    show_cursor()
+void    show_cursor(void)
 {
 	compose_disp_pix(cursor_pixel, COMPOSE_UI, cursor_pos);
 	cursor_is_shown = true;
 }
-void    hide_cursor()
+void    hide_cursor(void)
 {
 	compose_del_pix(COMPOSE_UI, cursor_pos);
 	cursor_is_shown = false;
 }
-void    blink_cursor()
+void    blink_cursor(void)
 {
 	if(cursor_is_shown)
 	{
@@ -222,7 +222,7 @@ void    move_cursor(DIRECTION dir)
 }
 /*** PATHFINDER ***/
 // (re) initilaise le pathfinder array
-void path_reinit(){
+void path_reinit(void){
 	for (int i=0; i<arena_size.col*arena_size.row; i++) {
 		pathfinder_array[i]=(pathfinder_data){
 			.next=DIR_NOWHERE,
@@ -421,7 +421,7 @@ int    main()
 
 
 //obtient et traite les inputs claviers
-void    treat_input()
+void    treat_input(void)
 {
 	char input;
 	while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
@@ -482,7 +482,7 @@ void build_defense(const defense_type_t *defense_type){
 	update_pathfinder_from(cursor_pos);
 }
 
-void select_defense(){
+void select_defense(void){
 	if (game_state==GAME_PLAYING)
 	{
 		game_state=GAME_SELECT_DEF;
@@ -516,7 +516,7 @@ void    display_defense_selection_item(pixel_t icon, uint32_t indice)
 }
 
 // Affiche le menu de selection de defense
-void    display_selection()
+void    display_selection(void)
 {
 	int indice=0;
 	for(int i = 0; i < shown_tree->sub_category_count; i++)
@@ -536,13 +536,13 @@ void    display_selection()
 	compose_disp_pix(selection_indicator, COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2});
 
 }
-void hide_selection(){
+void hide_selection(void){
 	//on clean l'entièreté de la colone de droite (ou il n'y a normalement que ca dans le niveau UI)
 	compose_del_area(COMPOSE_UI, (coordonee_t){termsize.col-reserved, 0}, (coordonee_t){termsize.col-1, termsize.row-1});
 }
 
 
-void augment_selection()
+void augment_selection(void)
 {
 	//on cache l'ancienne selection
 	compose_del_pix(COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});
@@ -554,7 +554,7 @@ void augment_selection()
 	//on affiche la nouvelle selection
 	compose_disp_pix(selection_indicator, COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});
 }
-void diminish_selection()
+void diminish_selection(void)
 {
 	//on cache l'ancienne selection
 	compose_del_pix(COMPOSE_UI, (coordonee_t){termsize.col-reserved, termsize.row-2-3*sel_index});

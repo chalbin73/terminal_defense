@@ -26,7 +26,7 @@ const char CHARS_TRIANGLE_DOWN[4]  = "▼";
 const char CHARS_TRIANGLE_UP[4]    = "▲";
 
 
-void    graphical_cleanup()
+void    graphical_cleanup(void)
 {
     //appellé a la sortie, résponsable de clean les graphisme
 
@@ -39,7 +39,7 @@ void    graphical_cleanup()
 
 }
 
-void    init_graphical()
+void    init_graphical(void)
 {
     //mets en place les graphismes
     //mets en place le buffering
@@ -303,7 +303,7 @@ void    pict_direct_display(picture_t pict, coordonee_t pos)
 
 
 //initialise le compositeur
-void    compose_init()
+void    compose_init(void)
 {
     compositor_stride = termsize.col * termsize.row;
     //on demande 5 images de la taille de l'écran, se suivant en mémoire
@@ -312,7 +312,7 @@ void    compose_init()
 }
 
 //free le compositeur
-void    compose_free()
+void    compose_free(void)
 {
     free(compositor_pixels);
     compositor_stride = 0;
@@ -373,7 +373,7 @@ void    compose_have_changed(coordonee_t pos)
         compositor_pixels[ offshet + compositor_stride * COMPOSE_RESULT ]  = pixel;
     }
 }
-void    compose_refresh()
+void    compose_refresh(void)
 {
     picture_t changes =
     {

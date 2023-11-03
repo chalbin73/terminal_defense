@@ -12,7 +12,6 @@
  ****TYPEDEF ET STRUCTS***
  *************************/
 
-typedef unsigned int uint;
 typedef enum
 {
 	DIR_UP    = 0,
@@ -70,7 +69,7 @@ typedef struct
 // Represente l'arbre de choix de defense dans le menu de selecion
 typedef struct defence_choice_tree_t
 {
-	char                                 *ui_txt;
+	const char                          *ui_txt;
 	pixel_t icon;
 
 	uint32_t sub_category_count;
@@ -88,7 +87,7 @@ typedef struct {
  ************************************/
 
 // @brief free tout notre bordel a la fin du programme
-void         cleanup();
+void         cleanup(void);
 
 /* @brief renvoie les coordonée du voisin (positions dans l'arène)
  *
@@ -130,12 +129,12 @@ void kill_monster(monster_t *monster, monster_t **previous_ptr);
  */
 void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction);
 // @brief vide l'input clavier
-void         clear_input();
+void         clear_input(void);
 // @brief bouge le curseur dans la direction demandée
 void         move_cursor(DIRECTION dir);
 /*** PATHFINDER ***/
 // @brief (Ré)initialse le moteur de pathfinding
-void path_reinit();
+void path_reinit(void);
 /* @brief Update le pathfinder a partir de la coordonée en paramètre
  *
  * @param position Position a partir de laquelle update le pathfinder
@@ -146,24 +145,24 @@ void update_pathfinder_from(coordonee_t position);
  *******************/
 
 // @brief setup initial
-int          main();
+int          main(void);
 /* @brief boucle principale d'execution
  *
  * @param difficulty dificultée de la partie
  */
 void         main_loop(uint difficulty);
 // @brief selectionne la défense
-void select_defense();
+void select_defense(void);
 // @brief construit une défense au niveau du curseur
 void build_defense(const defense_type_t *defense_type);
 // Affiche le menu de selection de defense
-void    display_selection();
+void    display_selection(void);
 // Cache le menu de selection de defense
-void hide_selection();
+void hide_selection(void);
 // Augmente la selection de 1 (et update le selecteur graphique)
-void augment_selection();
+void augment_selection(void);
 // Diminue la selection de 1 (et update le selecteur graphique)
-void diminish_selection();
+void diminish_selection(void);
 /*****************
  ***MONSTER POOL***
  ******************/
