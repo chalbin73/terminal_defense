@@ -31,7 +31,7 @@ typedef enum {
 typedef struct
 {
 	pixel_t sprite;
-	uint max_life;
+	int32_t max_life;
 	//en frame/cases
 	//+ élevé = plus lent
 	uint speed;
@@ -42,7 +42,8 @@ typedef struct
 typedef struct monster_t
 {
 	const monster_type *type;
-	uint vie;
+	int32_t vie;
+	uint64_t last_action_turn;
 	//pointeur vers les autres monstres dans la même case
 	//permet de "simplifier" le stockage des monstre a une certaine position
 	//(on en connait un, donc tout les autres en passant d'un mob a l'autre)
@@ -63,7 +64,7 @@ typedef struct
 typedef struct
 {
 	const defense_type_t *type;
-	uint life;
+	int64_t life;
 } defense_t;
 
 // Represente l'arbre de choix de defense dans le menu de selecion
@@ -125,9 +126,9 @@ void kill_monster(monster_t *monster, monster_t **previous_ptr);
  *
  * @param monster monstre a déplacer
  * @param previous_ptr pointeur sur le pointeur sur ce monstre dans la liste chainée de monster_position
- * @param new_pos position à laquelle déplacer le monstre
+ * @param objective position à laquelle déplacer le monstre
  */
-void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction);
+void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, coordonee_t objective);
 
 //fait clignoter le curseur
 void    blink_cursor(void);
@@ -180,7 +181,8 @@ void hide_selection(void);
 void augment_selection(void);
 // Diminue la selection de 1 (et update le selecteur graphique)
 void diminish_selection(void);
-
+//inflige des dégats a une défense
+void damage_defense(coordonee_t target_position,uint32_t damage);
 
 /*****************
  ***MONSTER POOL***

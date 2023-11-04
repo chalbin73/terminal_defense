@@ -5,7 +5,8 @@
  ************************/
 const char *EXIT_MSG;
 
-uint64_t joueur_vie, joueur_score, turn, joueur_ressources;
+int64_t *joueur_vie;
+uint64_t joueur_score, turn, joueur_ressources;
 tab_size_t arena_size;
 coordonee_t cursor_pos; //position du curseur
 bool cursor_is_shown;
@@ -144,6 +145,7 @@ void spawn_monster(monster_type *type, coordonee_t position){
 	*monster=(monster_t){
 		.type=type,
 		.vie=type->max_life,
+		.last_action_turn=turn,
 		.next_monster_in_room=monster_positions[offset_of(position, arena_size.stride)],
 	};
 	monster_positions[offset_of(position, arena_size.stride)]=monster;
@@ -155,26 +157,15 @@ void kill_monster(monster_t *monster, monster_t **previous_ptr){
 	monster_pool_dealloc(monster);
 }
 
-void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction)
+void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, coordonee_t objective)
 {
 	//on retire le montre de son ancienne case
-	//en faisant pointer le précédant sur le suivant
+	//en faisant pointer le précédant sur le suivant (on le retire de la liste chainée)
 	*previous_ptr = monster->next_monster_in_room;
-	//on update l'affichage
-	print_monster_at(monster_pos);
-	//on obtient la nouvelle case
-	coordonee_t new_pos=neighbor_of(monster_pos, direction);
-	if (new_pos.x==-1){
-		//ceci est un bug
-		EXIT_MSG="bugged monster moved out of screen! Report a pthfinding bug";
-		exit(2);
-	}
 	//on ajoute le monstre au début de la liste de la case suivante
-	//et on fait pointer le monstre sur les autres de la case
-	monster->next_monster_in_room                        = monster_positions[offset_of(new_pos, arena_size.stride)];
-	monster_positions[offset_of(new_pos, arena_size.stride)] = monster;
-	//et on update l'affichage
-	print_monster(monster, new_pos);
+	//et on fait pointer le monstre sur les autres de la case (on l'insère dans la liste chainée)
+	monster->next_monster_in_room = monster_positions[offset_of(objective, arena_size.stride)];
+	monster_positions[offset_of(objective, arena_size.stride)] = monster;
 }
 
 //enlève tout les inputs claviers non traitées
@@ -394,12 +385,13 @@ int    main()
 		.y=arena_size.row/2,
 	};
 
-	joueur_vie   = 1000;
 	joueur_ressources = 500;
 	joueur_score = 0;
 
 	cursor_pos=base_coordinate;
 	build_defense(&la_base);
+	//vie du joueur == vie de la base
+	joueur_vie=&(defense_array[offset_of(base_coordinate, termsize.stride)].life);
 
 	cursor_pixel = (pixel_t)
 	{
@@ -571,7 +563,7 @@ void diminish_selection(void)
 //run until quit or die
 void    main_loop(uint difficulty)
 {
-	while (joueur_vie>0)
+	while (*joueur_vie>0)
 	{
 		if (turn%2)blink_cursor();
 		treat_input();
@@ -582,6 +574,58 @@ void    main_loop(uint difficulty)
 	}
 	return;
 }
+
+void single_monster_routine(monster_t *monster,monster_t** previous_ptr,coordonee_t position){
+	if (monster->vie<0) {
+		//on tue le monstre
+		kill_monster(monster,previous_ptr);
+		return;
+	}
+	//temps depuis lequel le mob n'a rien fait
+	int64_t idle_time=turn - monster->last_action_turn;
+	if (idle_time<=0){
+		//le monstre vient de faire quelque chose (on repasse dessus si il vient de bouger). Il ne fait donc rien
+		return;
+	}
+	//on regarde vers ou le pathfinder nous indique d'aller
+	DIRECTION mob_objective_dir = pathfinder_array[offset_of(position, termsize.stride)].next;
+	coordonee_t mob_objective=neighbor_of(position, mob_objective_dir);
+	if (mob_objective.x==-1) {
+		//le pathfinder et buggé
+		EXIT_MSG="Pathfinder bug detected while trying to move, exiting";
+		exit(1);
+	}
+	//si le chemin est bloqué par une défense
+	defense_t *defence=&defense_array[offset_of(mob_objective, termsize.stride)];
+	if (defence->type!=NULL) {
+		//on lui tappe dessus
+		damage_defense(mob_objective,monster->type->damage);
+		//et on a fait une action
+		monster->last_action_turn=turn;
+	} else {
+		//le chemin n'est pas bloqué, on avance
+		move_monster(monster, previous_ptr, position, mob_objective);
+	}
+
+}
+
+void damage_defense(coordonee_t target_position,uint32_t damage){
+	defense_t *target=&defense_array[offset_of(target_position, termsize.stride)];
+
+	//si la défence passe un pas de 100 de vie, le pathfinder doit etre update, on stocke donc la vie précédente
+	int32_t previous_life=target->life;
+	int32_t new_life=previous_life-damage;
+
+	//si la défence est détruite, on retire son type (intérprété comme une abscence de défense)
+	if (new_life<0) target->type=NULL;
+	else target->life=new_life;
+
+	if (previous_life/100!=new_life/100) {
+		//la vie a suffisament changée, on update le patfinder
+		update_pathfinder_from(target_position);
+	}
+}
+
 
 /*****************************
  *** MONSTER POOL UTILITIES ***
