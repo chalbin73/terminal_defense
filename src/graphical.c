@@ -33,7 +33,7 @@ void    graphical_cleanup(void)
     //restore les attributs du terminal
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_term_settings);
     //réaffiche le curseur, et reset la couleur
-    printf("%s", "\e[H \e[?25h \e[0m \e[2J");
+    printf("%s", "\33[H \33[?25h \33[0m \33[2J");
 
     compose_free();
 
@@ -45,7 +45,7 @@ void    init_graphical(void)
     //mets en place le buffering
     setvbuf(stdout, stdout_buffer, _IOFBF, 100);
     //maximise le terminal et cache le curseur
-    printf("%s", "\e[?25l \e[8;99999;99999t");
+    printf("%s", "\33[?25l \33[8;99999;99999t");
 
     //obtention de la taille de l'écran
     struct winsize raw_termsize;
@@ -204,14 +204,14 @@ void    go_to(coordonee_t pos)
 {
     //mets le curseur a la position demandée sur le terminal
     //le terminal compte a partir de 1, C a partir de 0, donc on ajoute 1
-    printf("\e[%i;%if", pos.y + 1, pos.x + 1);
+    printf("\33[%i;%if", pos.y + 1, pos.x + 1);
 }
 void    advance_cursor(uint    nb)
 {
     //avance le cusreur de nb charctères
     if (nb>0)
     {
-        printf("\e[%uC", nb);
+        printf("\33[%uC", nb);
     }
 }
 void    set_color(int    color)
@@ -223,11 +223,11 @@ void    set_color(int    color)
         cur_color = color;
         if (color==-1)
         {
-            printf("\e[39m");
+            printf("\33[39m");
         }
         else
         {
-            printf("\e[38;5;%im", color);
+            printf("\33[38;5;%im", color);
         }
     }
 }
@@ -240,11 +240,11 @@ void    set_color_background(int    color)
         cur_color_background = color;
         if (color==-1)
         {
-            printf("\e[49m");
+            printf("\33[49m");
         }
         else
         {
-            printf("\e[48;5;%im", color);
+            printf("\33[48;5;%im", color);
         }
     }
 }

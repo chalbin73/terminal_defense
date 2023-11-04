@@ -72,10 +72,10 @@ typedef struct defence_choice_tree_t
 	const char                          *ui_txt;
 	pixel_t icon;
 
-	uint32_t sub_category_count;
+	uint16_t sub_category_count;
 	const struct defence_choice_tree_t  **sub_categories;
 
-	uint32_t defense_count;
+	uint16_t defense_count;
 	const defense_type_t                     **defenses;
 } defence_choice_tree_t;
 typedef struct {
@@ -98,7 +98,8 @@ void         cleanup(void);
  * @note renvoie NO_COORDINATE si le voisin n'éxsite pas
  */
 coordonee_t neighbor_of(coordonee_t coo, DIRECTION neighbor);
-
+//renvoie la direction oposée a celle passée en argument
+DIRECTION oposite_direction(DIRECTION dir);
 
 /* @brief affiche un monstre
  *
@@ -120,7 +121,6 @@ void spawn_monster(monster_type *type, coordonee_t position);
  * @param previous_ptr pointeur sur le pointeur sur ce monstre dans la liste chainée de monster_position
  */
 void kill_monster(monster_t *monster, monster_t **previous_ptr);
-
 /* @brief deplace un monstre
  *
  * @param monster monstre a déplacer
@@ -128,11 +128,20 @@ void kill_monster(monster_t *monster, monster_t **previous_ptr);
  * @param new_pos position à laquelle déplacer le monstre
  */
 void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, DIRECTION direction);
+
+//fait clignoter le curseur
+void    blink_cursor(void);
+//cache le curseur
+void    hide_cursor(void);
+//montre le curseur
+void    show_cursor(void);
 // @brief vide l'input clavier
 void         clear_input(void);
 // @brief bouge le curseur dans la direction demandée
 void         move_cursor(DIRECTION dir);
+
 /*** PATHFINDER ***/
+
 // @brief (Ré)initialse le moteur de pathfinding
 void path_reinit(void);
 /* @brief Update le pathfinder a partir de la coordonée en paramètre
@@ -140,39 +149,53 @@ void path_reinit(void);
  * @param position Position a partir de laquelle update le pathfinder
  */
 void update_pathfinder_from(coordonee_t position);
+
 /******************
  ***MOTEUR DE JEU***
  *******************/
 
 // @brief setup initial
 int          main(void);
+// Pour chaque input clavier depuis la dernière frame, execute l'action associé
+void    treat_input(void);
 /* @brief boucle principale d'execution
  *
  * @param difficulty dificultée de la partie
  */
 void         main_loop(uint difficulty);
+
+/***DEFENSE SELECTION***/
+
 // @brief selectionne la défense
 void select_defense(void);
 // @brief construit une défense au niveau du curseur
 void build_defense(const defense_type_t *defense_type);
 // Affiche le menu de selection de defense
 void    display_selection(void);
+// affiche un item de la selection de défense
+void    display_defense_selection_item(pixel_t icon, uint32_t indice);
 // Cache le menu de selection de defense
 void hide_selection(void);
 // Augmente la selection de 1 (et update le selecteur graphique)
 void augment_selection(void);
 // Diminue la selection de 1 (et update le selecteur graphique)
 void diminish_selection(void);
+
+
 /*****************
  ***MONSTER POOL***
  ******************/
 
 /* @brief Creates and initialized the pool of all monsters
  *
- * @param pool_size The maximum amount of monster that can be allocated inside the pool
+ * @param pool_size The size of the initial monster memory allocation
  */
 void         monster_pool_create(uint32_t pool_size);
-
+/* @brief Augmente la taille de la mémoire pour les monstres
+ *
+ * @param expand_size nombre de monstre a rendre disponible en plus
+ */
+void    monster_pool_expand(uint32_t expand_size);
 // @brief Cleans up and frees the memory of the monster pool
 void         monster_pool_destroy(void);
 

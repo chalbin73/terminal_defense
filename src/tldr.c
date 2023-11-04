@@ -48,7 +48,7 @@ static const pixel_t selection_indicator =
 	.c1               = '*',
 	.c2               = 0,
 };
-static const coordonee_t NO_COORDINATE=(coordonee_t){
+static const coordonee_t NO_COORDINATE={
 	.x=-1,
 	.y=0,
 };
@@ -428,7 +428,7 @@ void    treat_input(void)
 	{
 		switch (input)
 		{
-		case '\e':
+		case '\33':
 			//Le caractère d'échapement est présent devant plein de trucs spéciaux (Eg F1)
 			//trop compliquer a parser, on détruit l'input
 			clear_input();
@@ -509,8 +509,8 @@ void select_defense(void){
 // Affiche un item de choix
 void    display_defense_selection_item(pixel_t icon, uint32_t indice)
 {
-	uint posx=termsize.col-reserved+1; //a gauche de la barre de droite
-	uint posy=termsize.row-indice*3-3; //en bas, par pas de 3 (taille d'un icone)
+	int32_t posx=termsize.col-reserved+1; //a gauche de la barre de droite
+	int32_t posy=termsize.row-indice*3-3; //en bas, par pas de 3 (taille d'un icone)
 	compose_disp_pict(frame, COMPOSE_UI, (coordonee_t){posx,posy});
 	compose_disp_pix(icon, COMPOSE_UI, (coordonee_t){posx + 1, posy + 1});
 }
@@ -518,7 +518,7 @@ void    display_defense_selection_item(pixel_t icon, uint32_t indice)
 // Affiche le menu de selection de defense
 void    display_selection(void)
 {
-	int indice=0;
+	uint32_t indice=0;
 	for(int i = 0; i < shown_tree->sub_category_count; i++)
 	{
 		display_defense_selection_item(shown_tree->sub_categories[i]->icon, indice);
@@ -635,7 +635,7 @@ void    monster_pool_destroy(void)
 {
 	if(monster_memories == NULL)
 		return;
-	for(int i = 0; i<monster_memories_count; i++)
+	for(uint i = 0; i<monster_memories_count; i++)
 	{
 		free(monster_memories[i]);
 	}

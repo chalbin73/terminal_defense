@@ -33,9 +33,9 @@ typedef unsigned int uint;
 //dans un tableau "complet", stride==nb_col, mais stocker stride a part
 //permet de faire des vues partielles des tableaux (un masque/cropping ...)
 typedef struct {
-	uint col;
-	uint row;
-	uint stride;
+	int32_t col;
+	int32_t row;
+	int32_t stride;
 } tab_size_t;
 typedef struct {
 	int32_t x;
