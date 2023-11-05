@@ -44,6 +44,11 @@ typedef struct {
 //Global var
 extern const char* EXIT_MSG;
 
+//renvoie l'argument le plus petit
+int32_t min(int32_t a,int32_t b);
+//renvoie l'argument le plus grand
+int32_t max(int32_t a,int32_t b);
+
 //attend ms milliseconde
 int wait(long int ms);
 

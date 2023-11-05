@@ -36,6 +36,15 @@ void   *safe_realloc(void *ptr, size_t new_size)
 	//la fonction cleanup *devrait* clean notre bordel
 	exit(254);
 }
+int32_t min(int32_t a, int32_t b){
+	if (a<b) return a;
+	else     return b;
+}
+int32_t max(int32_t a, int32_t b){
+	if (a>b) return a;
+	else     return b;
+}
+
 
 //attend ms milliseconde
 int    wait(long ms)
@@ -56,7 +65,7 @@ int    wait(long ms)
  *** RESSOURCES ***
  ******************/
 
-const monster_type runner =
+const monster_type_t runner =
 {
 	.speed    = 4,
 	.damage   = 10,
@@ -71,7 +80,7 @@ const monster_type runner =
 		.c4               = '\0',
 	},
 };
-const monster_type armored =
+const monster_type_t armored =
 {
 	.speed    = 10,
 	.damage   = 30,

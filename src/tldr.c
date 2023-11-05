@@ -116,12 +116,13 @@ void    cleanup(void)
 	//free les variables qui trainent
 	clear_input();
 	graphical_cleanup();
+	//affiche la raison d'éxit
+	printf("%s\n", EXIT_MSG);
+
 	monster_pool_destroy();
 	free(monster_positions);
 	free(defense_array);
 	free(pathfinder_array);
-	//affiche la raison d'éxit
-	printf("%s\n", EXIT_MSG);
 }
 //affiche le premier monstre a la position demandée
 void print_monster_at(coordonee_t pos){
@@ -129,18 +130,23 @@ void print_monster_at(coordonee_t pos){
 }
 
 //affiche un monstre (et clear si monster et le pointeur null)
-void    print_monster(monster_t *monster, coordonee_t pos)
+void    print_monster(const monster_t *monster, coordonee_t pos)
 {
 	//affiche un monstre
 	if (monster==NULL){
+		const defense_type_t  *defense_type = defense_array[offset_of(pos, arena_size.stride)].type;
+		if (defense_type==NULL){
 		compose_del_pix(COMPOSE_ARENA,pos);
+		} else {
+			compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, pos);
+		}
 	}else {
 		compose_disp_pix(monster->type->sprite, COMPOSE_ARENA, pos);
 	}
 }
 
 //fais spawn un monstre
-void spawn_monster(monster_type *type, coordonee_t position){
+void spawn_monster(const monster_type_t *type, coordonee_t position){
 	monster_t *monster=monster_pool_alloc();
 	*monster=(monster_t){
 		.type=type,
@@ -152,20 +158,24 @@ void spawn_monster(monster_type *type, coordonee_t position){
 	print_monster(monster,position);
 }
 //finalise la mort d'un monstre
-void kill_monster(monster_t *monster, monster_t **previous_ptr){
-	*previous_ptr=monster->next_monster_in_room;
-	monster_pool_dealloc(monster);
+void kill_monster(monster_t **monster_ptr){
+	monster_t* next_monster=(*monster_ptr)->next_monster_in_room;
+	monster_pool_dealloc(*monster_ptr);
+	*monster_ptr=next_monster;
 }
 
-void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, coordonee_t objective)
+void    move_monster(monster_t **monster_ptr, coordonee_t objective)
 {
+	monster_t *monster=*monster_ptr;
 	//on retire le montre de son ancienne case
 	//en faisant pointer le précédant sur le suivant (on le retire de la liste chainée)
-	*previous_ptr = monster->next_monster_in_room;
+	*monster_ptr = monster->next_monster_in_room;
 	//on ajoute le monstre au début de la liste de la case suivante
 	//et on fait pointer le monstre sur les autres de la case (on l'insère dans la liste chainée)
 	monster->next_monster_in_room = monster_positions[offset_of(objective, arena_size.stride)];
 	monster_positions[offset_of(objective, arena_size.stride)] = monster;
+	//on update l'affichage (celui derière nous sera déja clean
+	print_monster(monster, objective);
 }
 
 //enlève tout les inputs claviers non traitées
@@ -206,7 +216,8 @@ void    move_cursor(DIRECTION dir)
 {
 	hide_cursor();
 	coordonee_t new_pos=neighbor_of(cursor_pos, dir);
-	if (new_pos.x!=-1) {
+	//on ne peut intentionelement pas séléctionner la première ligne, pour que les mobs puisse spawn
+	if (new_pos.x>0) {
 		cursor_pos=new_pos;
 	}
 	show_cursor();
@@ -290,8 +301,8 @@ void update_pathfinder_from(coordonee_t position){
 		}//fin du if(pos_base)
 
 		pathfinder_array[offset_of(position, arena_size.stride)]=here_after;
-		//si on est undef ou qu'on s'est amélioré
-		if (here_after.next == DIR_NOWHERE || here_after.distance<here_before.distance){
+		//si on est undef XOR on était undef ou qu'on s'est amélioré
+		if ( ((here_after.next == DIR_NOWHERE) ^ (here_before.next == DIR_NOWHERE)) || here_after.distance<here_before.distance){
 			//on dit a tous les voisins de s'update
 			for (DIRECTION direction=DIR_UP; direction<DIR_NOWHERE; direction++) {
 				//pour chaue direction cardinale
@@ -316,7 +327,15 @@ void update_pathfinder_from(coordonee_t position){
 /******************
  ***MOTEUR DE JEU***
  *******************/
-
+void sig_handler(int _){
+	//to avoid unused parametter warning
+	(void)_;
+	//to avoid crashlooping
+	signal(SIGSEGV, SIG_DFL);
+	signal(SIGILL, SIG_DFL);
+	signal(SIGTERM, SIG_DFL);
+	exit(1);
+}
 
 int    main()
 {
@@ -325,11 +344,15 @@ int    main()
 	//***setup initial***
 
 	init_graphical();
+	//restaure l'état du terminal en cas de crash
+	signal(SIGSEGV, sig_handler);
+	signal(SIGTERM, sig_handler);
+	//renseigne la fonction a éxécuter a la sortie du programme
+	atexit(cleanup);
 
 	//initialize randomness using system time
 	srand( (unsigned int)time(NULL) );
-	//renseigne la fonction a éxécuter a la sortie du programme
-	atexit(cleanup);
+
 
 	//*initialise les variables globales*
 
@@ -390,8 +413,9 @@ int    main()
 
 	cursor_pos=base_coordinate;
 	build_defense(&la_base);
+	path_reinit();
 	//vie du joueur == vie de la base
-	joueur_vie=&(defense_array[offset_of(base_coordinate, termsize.stride)].life);
+	joueur_vie=&(defense_array[offset_of(base_coordinate, arena_size.stride)].life);
 
 	cursor_pixel = (pixel_t)
 	{
@@ -407,7 +431,7 @@ int    main()
 	game_state=GAME_PLAYING;
 	turn=0;
 	main_loop(10);
-	EXIT_MSG = "";
+	EXIT_MSG = "You died!";
 	return EXIT_SUCCESS;
 }
 
@@ -567,6 +591,9 @@ void    main_loop(uint difficulty)
 	{
 		if (turn%2)blink_cursor();
 		treat_input();
+		randomly_spawn_mobs(difficulty);
+		defenses_routine();
+		monsters_routine();
 		compose_refresh();
 
 		wait(100);
@@ -575,10 +602,13 @@ void    main_loop(uint difficulty)
 	return;
 }
 
-void single_monster_routine(monster_t *monster,monster_t** previous_ptr,coordonee_t position){
-	if (monster->vie<0) {
+void single_monster_routine(monster_t** monster_ptr,coordonee_t position){
+	monster_t *monster=*monster_ptr;
+
+	//on ne devrait pas passer ici, mais des fois que
+	if (monster->vie<=0) {
 		//on tue le monstre
-		kill_monster(monster,previous_ptr);
+		kill_monster(monster_ptr);
 		return;
 	}
 	//temps depuis lequel le mob n'a rien fait
@@ -588,7 +618,7 @@ void single_monster_routine(monster_t *monster,monster_t** previous_ptr,coordone
 		return;
 	}
 	//on regarde vers ou le pathfinder nous indique d'aller
-	DIRECTION mob_objective_dir = pathfinder_array[offset_of(position, termsize.stride)].next;
+	DIRECTION mob_objective_dir = pathfinder_array[offset_of(position, arena_size.stride)].next;
 	coordonee_t mob_objective=neighbor_of(position, mob_objective_dir);
 	if (mob_objective.x==-1) {
 		//le pathfinder et buggé
@@ -596,21 +626,58 @@ void single_monster_routine(monster_t *monster,monster_t** previous_ptr,coordone
 		exit(1);
 	}
 	//si le chemin est bloqué par une défense
-	defense_t *defence=&defense_array[offset_of(mob_objective, termsize.stride)];
+	defense_t *defence=&defense_array[offset_of(mob_objective, arena_size.stride)];
 	if (defence->type!=NULL) {
 		//on lui tappe dessus
 		damage_defense(mob_objective,monster->type->damage);
 		//et on a fait une action
 		monster->last_action_turn=turn;
 	} else {
-		//le chemin n'est pas bloqué, on avance
-		move_monster(monster, previous_ptr, position, mob_objective);
+		//le chemin n'est pas bloqué, on avance (selon la vitesse du mob)
+		if (idle_time>=monster->type->speed) {
+			move_monster(monster_ptr, mob_objective);
+			monster->last_action_turn=turn;
+		}
 	}
 
 }
+void monsters_routine(void){
+	coordonee_t position;
+	for (position.y=0; position.y<arena_size.row ; position.y++) {
+		for (position.x=0; position.x<arena_size.col; position.x++) {
+			//pour chaque cases, on parcour la liste chainée des monstre a cette case, et appèlle la routine sur eux
+			monster_t **monster_ptr=&monster_positions[offset_of(position, arena_size.stride)];
+			monster_t **monster_ptr_next=NULL;
+			while (*monster_ptr!=NULL) {
+				//on doit obtenir le monstre suivant des maintenant car le monstre actuel risque de bouger (auquel cas le pointeur actuel ne sera plus valide)
+				monster_ptr_next=&((*monster_ptr)->next_monster_in_room);
+				single_monster_routine(monster_ptr,position);
+				monster_ptr=monster_ptr_next;
+			}
+			//puis on update les graphismes
+			print_monster_at(position);
+		}
+	}
+}
+void randomly_spawn_mobs(int difficulty){
+	//TODO: improve, this is realy crude
+	if (rand()%difficulty==0) {
+		coordonee_t spawn_location={
+			.x=0,
+			.y=rand()%arena_size.row,
+		};
+		const monster_type_t *type;
+		if (rand()%2) {
+			type=&runner;
+		} else {
+			type=&armored;
+		}
+		spawn_monster(type, spawn_location);
+	}
+}
 
 void damage_defense(coordonee_t target_position,uint32_t damage){
-	defense_t *target=&defense_array[offset_of(target_position, termsize.stride)];
+	defense_t *target=&defense_array[offset_of(target_position, arena_size.stride)];
 
 	//si la défence passe un pas de 100 de vie, le pathfinder doit etre update, on stocke donc la vie précédente
 	int32_t previous_life=target->life;
@@ -625,7 +692,45 @@ void damage_defense(coordonee_t target_position,uint32_t damage){
 		update_pathfinder_from(target_position);
 	}
 }
-
+void defenses_routine(void){
+	coordonee_t position;
+	for (position.x=0; position.x<arena_size.col; position.x++) {
+		for (position.y=0; position.y<arena_size.row; position.y++) {
+			if (defense_array[offset_of(position, arena_size.stride)].type!=NULL) {
+				single_defense_routine(position);
+			}
+		}
+	}
+}
+void single_defense_routine(coordonee_t defense_position){
+	//update des graphismes
+	defense_t defense=defense_array[offset_of(defense_position, arena_size.stride)];
+	if (defense.type->damage>0){
+		//cherche des monstres a proximité
+		int32_t range=defense.type->range;
+		int32_t minx=max(0,              defense_position.x-range);
+		int32_t maxx=min(arena_size.col, defense_position.x+range+1);
+		int32_t miny=max(0,              defense_position.y-range);
+		int32_t maxy=min(arena_size.row, defense_position.y+range+1);
+		//tape le monstre le plus a droite dans la range
+		for (int32_t x=maxx-1; x>=minx; x--) {
+			for (int32_t y=miny; y<maxy; y++) {
+				monster_t **monster_ptr=&monster_positions[x + y*arena_size.stride];
+				if ((*monster_ptr)!=NULL){
+					damage_monster(monster_ptr,defense.type->damage);
+					//on a fait des dégats; on s'arrète
+					return;
+				}
+			}
+		}
+	}
+}
+void damage_monster(monster_t **monster_ptr,int32_t damage){
+	(*monster_ptr)->vie-=damage;
+	if ((*monster_ptr)->vie<=0) {
+		kill_monster(monster_ptr);
+	}
+}
 
 /*****************************
  *** MONSTER POOL UTILITIES ***

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <signal.h>
 
 #include "config.h"
 #include "graphical.h"
@@ -38,10 +39,10 @@ typedef struct
 	//damage/frame
 	uint damage;
 
-} monster_type;
+} monster_type_t;
 typedef struct monster_t
 {
-	const monster_type *type;
+	const monster_type_t *type;
 	int32_t vie;
 	uint64_t last_action_turn;
 	//pointeur vers les autres monstres dans la même case
@@ -89,6 +90,11 @@ typedef struct {
 
 // @brief free tout notre bordel a la fin du programme
 void         cleanup(void);
+/* @brief permet de restaurer l'état du terminal en cas de chrash
+ *
+ * @param _ Unused. Required to be registered as signal handler
+ */
+void sig_handler(int _);
 
 /* @brief renvoie les coordonée du voisin (positions dans l'arène)
  *
@@ -107,7 +113,7 @@ DIRECTION oposite_direction(DIRECTION dir);
  * @param monster monstre a afficher
  * @param pos position d'affichage
  */
-void         print_monster(monster_t *monster, coordonee_t pos);
+void         print_monster(const monster_t *monster, coordonee_t pos);
 // @brief affiche le premier monstre a la position demandée
 void print_monster_at(coordonee_t pos);
 /* @brief fais apparaitre un monstre
@@ -115,20 +121,18 @@ void print_monster_at(coordonee_t pos);
  * @param type type de monstre a faire apparaitre
  * @param position endroit ou il faut faire apparaitre le monstre
  */
-void spawn_monster(monster_type *type, coordonee_t position);
+void spawn_monster(const monster_type_t *type, coordonee_t position);
 /* @brief finalise la mort d'un monstre (le free et le sort de monster_position)
  *
- * @param monster monstre a tuer
- * @param previous_ptr pointeur sur le pointeur sur ce monstre dans la liste chainée de monster_position
+ * @param monster_ptr pointeur sur le pointeur sur un monstre afin de le retirer de la liste chainée de monster_position
  */
-void kill_monster(monster_t *monster, monster_t **previous_ptr);
+void kill_monster(monster_t **monster_ptr);
 /* @brief deplace un monstre
  *
- * @param monster monstre a déplacer
- * @param previous_ptr pointeur sur le pointeur sur ce monstre dans la liste chainée de monster_position
+ * @param monster_ptr pointeur sur le pointeur sur un monstre dans la liste chainée de monster_position (permet de déplacer le monstre dans cette dernière)
  * @param objective position à laquelle déplacer le monstre
  */
-void    move_monster(monster_t *monster, monster_t **previous_ptr, coordonee_t monster_pos, coordonee_t objective);
+void    move_monster(monster_t **monster_ptr, coordonee_t objective);
 
 //fait clignoter le curseur
 void    blink_cursor(void);
@@ -165,6 +169,23 @@ void    treat_input(void);
  */
 void         main_loop(uint difficulty);
 
+//spawn eventuels de mobs
+void randomly_spawn_mobs(int difficulty);
+
+//routine pour l'ensemble des mobs
+void monsters_routine(void);
+//routine pour l'ensemble des defense
+void defenses_routine(void);
+//routine pour un mob
+void single_monster_routine(monster_t** monster_ptr,coordonee_t position);
+//routine pour une defense
+void single_defense_routine(coordonee_t defense_position);
+//inflige des dégats a une défense
+void damage_defense(coordonee_t target_position,uint32_t damage);
+//inflige des dégats a un monstre
+void damage_monster(monster_t **monster_ptr,int32_t damage);
+
+
 /***DEFENSE SELECTION***/
 
 // @brief selectionne la défense
@@ -181,9 +202,6 @@ void hide_selection(void);
 void augment_selection(void);
 // Diminue la selection de 1 (et update le selecteur graphique)
 void diminish_selection(void);
-//inflige des dégats a une défense
-void damage_defense(coordonee_t target_position,uint32_t damage);
-
 /*****************
  ***MONSTER POOL***
  ******************/
@@ -231,8 +249,8 @@ uint32_t     monster_pool_count(void);
  ******************/
 //definie dans common_and_ressources.c
 
-extern const monster_type runner;
-extern const monster_type armored;
+extern const monster_type_t runner;
+extern const monster_type_t armored;
 
 extern const defense_type_t wall;
 extern const defense_type_t basic_turret;

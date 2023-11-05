@@ -18,13 +18,14 @@ SOURCES+=tldr.c
 
 OBJECTS  := $(patsubst %.c,build/%.o,$(SOURCES))
 DEPFILES := $(patsubst %.o,%.d,$(OBJECTS))
--include $(DEPFILES)
 
-.PHONY: all debug help
+.PHONY: all debug help build_dir
 
 all: CFLAGS+=$(RELEASE_FLAGS)
 all: LDFLAGS+=-s $(RELEASE_FLAGS)
 all: tldr
+
+-include $(DEPFILES)
 
 debug: CFLAGS+=$(DEBUG_FLAGS)
 debug: LDFLAGS+=$(DEBUG_FLAGS)

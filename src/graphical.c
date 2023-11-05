@@ -46,7 +46,6 @@ void    init_graphical(void)
     setvbuf(stdout, stdout_buffer, _IOFBF, 100);
     //maximise le terminal et cache le curseur
     printf("%s", "\33[?25l \33[8;99999;99999t");
-
     //obtention de la taille de l'écran
     struct winsize raw_termsize;
     ioctl(0, TIOCGWINSZ, &raw_termsize);
@@ -70,7 +69,7 @@ void    init_graphical(void)
     tcsetattr(STDIN_FILENO, TCSANOW, &raw);
     #endif //SYSTEM_POSIX
 
-    //setup windows
+    //setup windows, non tésté, par manque de machine windows a disposition
     #if SYSTEM_WINDOWS
     // Set output mode to handle virtual terminal sequences
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
