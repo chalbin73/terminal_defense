@@ -8,13 +8,19 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 
+//nombre de cycle de clock en une miliseconde
+#define CLOCKS_PER_MSEC ( CLOCKS_PER_SEC / 1000 )
+#if ( CLOCKS_PER_MSEC == 0 )
+	#error Clock resolution to low to run properly the game. Aborting compilation
+#endif
+#define FRAME_TIME 100
 
 #if defined(__unix__) || (defined (__APPLE__) && defined ( __MACH__) )
 	#define SYSTEM_POSIX    1
 	#define SYSTEM_WINDOWS  0
 	#include <unistd.h>
-	#include <time.h>
 #else
 	#ifdef _WIN64
 		#define SYSTEM_WINDOWS  1
@@ -51,7 +57,8 @@ int32_t max(int32_t a,int32_t b);
 
 //attend ms milliseconde
 int wait(long int ms);
-
+//attend la prochaine frame
+void wait_for_next_frame(void);
 //malloc, en vérifiant que tout s'est bien passé
 //plante "proprement" si ce n'est pas le cas
 void* safe_malloc(size_t size);

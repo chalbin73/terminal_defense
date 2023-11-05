@@ -589,14 +589,13 @@ void    main_loop(uint difficulty)
 {
 	while (*joueur_vie>0)
 	{
+		wait_for_next_frame();
 		if (turn%2)blink_cursor();
 		treat_input();
 		randomly_spawn_mobs(difficulty);
 		defenses_routine();
 		monsters_routine();
 		compose_refresh();
-
-		wait(100);
 		turn+=1;
 	}
 	return;

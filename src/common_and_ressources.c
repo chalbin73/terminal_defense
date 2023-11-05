@@ -8,7 +8,7 @@
  *** FONCTIONS UTILITAIRES ***
  *****************************/
 
-
+clock_t last_frame_time=0;
 void   *safe_malloc(size_t size)
 {
 	//obtient de la place mémoire et vérifie qu'elle a bien été alouée
@@ -38,11 +38,11 @@ void   *safe_realloc(void *ptr, size_t new_size)
 }
 int32_t min(int32_t a, int32_t b){
 	if (a<b) return a;
-	else     return b;
+	else return b;
 }
 int32_t max(int32_t a, int32_t b){
 	if (a>b) return a;
-	else     return b;
+	else return b;
 }
 
 
@@ -59,6 +59,20 @@ int    wait(long ms)
 	#else
 	return Sleep(ms);
 	#endif
+}
+
+//attend la prochaine frame
+void wait_for_next_frame(void){
+	clock_t actual_time=clock();
+	long int diff_in_ms=(actual_time-last_frame_time)/CLOCKS_PER_MSEC;
+	if (diff_in_ms<0 || diff_in_ms>FRAME_TIME) {
+		//heavily lagging,
+		//clock uninitialized or looped around (32-bits maybe)
+		last_frame_time=actual_time;
+	} else {
+		last_frame_time=last_frame_time+FRAME_TIME*CLOCKS_PER_MSEC;
+		wait(diff_in_ms);
+	}
 }
 
 /*****************
