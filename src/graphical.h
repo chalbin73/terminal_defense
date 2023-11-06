@@ -83,7 +83,8 @@ void set_color(int color);
 void set_color_background(int color);
 //affiche sur le terminal une image a une position donnée
 void pict_direct_display(picture_t pict, coordonee_t pos);
-
+//mets un string (anssi) dans une image
+void txt_to_img(picture_t result,const char* text_to_display,COLOR text_color,COLOR background_color);
 
 /***************************
  *** COMPOSITOR UTILITIES ***
@@ -114,6 +115,9 @@ void compose_free(void);
  * @param pos position du coin superieur gauche de l'image
  */
 void compose_disp_pict(picture_t pict,COMPOSE_RANK rank,coordonee_t pos);
+// @brief affiche du texte a un emplacment donné, dans une boite de taille size_of_text_box positionée en pos
+void compose_disp_text(const char* text_to_display, COLOR text_color, COLOR background_color,
+                       COMPOSE_RANK rank, coordonee_t pos, coordonee_t size_of_text_box);
 // @brief affiche un pixel au plan demandé
 void compose_disp_pix(pixel_t pixel,COMPOSE_RANK rank,coordonee_t pos);
 // @brief calcule les changements a la position x,y

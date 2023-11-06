@@ -144,6 +144,8 @@ void    show_cursor(void);
 void         clear_input(void);
 // @brief bouge le curseur dans la direction demandée
 void         move_cursor(DIRECTION dir);
+//update l'affichage de la colonne de status (droite de l'écran)
+void right_column_refresh(void);
 
 /*** PATHFINDER ***/
 

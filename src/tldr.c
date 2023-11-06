@@ -44,8 +44,8 @@ const defence_choice_tree_t *shown_tree = NULL;
 int32_t sel_index                       = 0;
 static const pixel_t selection_indicator =
 {
-	.background_color = COL_DEFAULT,
-	.color            = COL_GREEN,
+	.background_color = COL_BLUE,
+	.color            = COL_RED,
 	.c1               = '*',
 	.c2               = 0,
 };
@@ -136,7 +136,7 @@ void    print_monster(const monster_t *monster, coordonee_t pos)
 	if (monster==NULL){
 		const defense_type_t  *defense_type = defense_array[offset_of(pos, arena_size.stride)].type;
 		if (defense_type==NULL){
-		compose_del_pix(COMPOSE_ARENA,pos);
+			compose_del_pix(COMPOSE_ARENA,pos);
 		} else {
 			compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, pos);
 		}
@@ -231,14 +231,13 @@ void path_reinit(void){
 			.distance=UINT64_MAX,
 		};
 	}
-	update_pathfinder_from(base_coordinate);
 }
 //update le pathfinder a partir de la position demandée
 void update_pathfinder_from(coordonee_t position){
 	//indice déja traité
 	uint borne_inf=0;
 	//indice jusqu' auquel la liste est remplie
-	uint borne_sup=1;
+	uint borne_sup=0;
 
 	//la ou nous a demander d'update
 	position_list[0]=position;
@@ -249,7 +248,7 @@ void update_pathfinder_from(coordonee_t position){
 	pathfinder_data here_after;
 
 	//tant qu'il reste des case a traiter
-	while (borne_inf!=borne_sup) {
+	while (borne_inf!=borne_sup+1) {
 		//position de la case a traiter
 		position=position_list[borne_inf];
 		//indice dans les tableau
@@ -298,27 +297,45 @@ void update_pathfinder_from(coordonee_t position){
 				//on est sur une défense, on augmente la "taille" du chemin selon la vie
 				here_after.distance+=defense_array[offset_of(position, arena_size.stride)].life/100;
 			}
-		}//fin du if(pos_base)
+		}//fin du if(pos_base) else
 
 		pathfinder_array[offset_of(position, arena_size.stride)]=here_after;
-		//si on est undef XOR on était undef ou qu'on s'est amélioré
-		if ( ((here_after.next == DIR_NOWHERE) ^ (here_before.next == DIR_NOWHERE)) || here_after.distance<here_before.distance){
-			//on dit a tous les voisins de s'update
+		//si on s'est recalculé avec succès
+		if ( here_after.next != DIR_NOWHERE ){
 			for (DIRECTION direction=DIR_UP; direction<DIR_NOWHERE; direction++) {
-				//pour chaue direction cardinale
+				//on update jamais le voisin sur lequel on pointe
+				if (direction==here_after.next) {continue;} //fait sauter ce tour de boucle
 				coordonee_t neighbor=neighbor_of(position, direction);
 				if (neighbor.x!=-1){    //si le voisin existe
-					borne_sup+=1;
-					if (borne_sup==pos_list_size)borne_sup=0;
-					position_list[borne_sup]=neighbor;
-					//si se voisin pointait sur nous, on le fait pointer sur rien
-					if (pathfinder_array[offset_of(neighbor,arena_size.stride)].next==oposite_direction(direction)){
-						pathfinder_array[offset_of(neighbor,arena_size.stride)].next=DIR_NOWHERE;
+					/* si
+					 * - nôtre distance s'est améliorée
+					 * - nôtre distance a changé et que ce voisins pointait sur nous
+					 * - ce voisin était undef
+					 * On l'update
+					 */
+					int32_t offset_voisin=offset_of(neighbor,arena_size.stride);
+					pathfinder_data voisin=pathfinder_array[offset_voisin];
+					if (( here_after.distance<here_before.distance      ) // - amélioration de la distance
+					    ||( voisin.next==DIR_NOWHERE                    ) // - voisin non défini
+					    ||( here_after.next!=here_before.next             // - changement +
+					        &&voisin.next==oposite_direction(direction))){//        voisin pointe sur nous
+
+						//on marque le voisin comme a update
+						//(ajout dans la liste plus pointe nul-part)
+						borne_sup+=1;
+						if (borne_sup==pos_list_size) borne_sup=0;
+						position_list[borne_sup]=neighbor;
+						pathfinder_array[offset_voisin].next=DIR_NOWHERE;
 					}
 				}
 			}//fin du for
+		} //if recalculé avec succès
+		else {
+			//si on ne s'est pas recalculé avec succès, on doit se recalculer
+			borne_sup+=1;
+			if (borne_sup==pos_list_size) borne_sup=0;
+			position_list[borne_sup]=position;
 		}
-
 		borne_inf++;
 		if (borne_inf==pos_list_size)borne_inf=0;
 	}// fin du while
@@ -384,8 +401,13 @@ int    main()
 			compose_disp_pix(pixel, COMPOSE_BACK, (coordonee_t){i,j});
 		}
 	}
-	pixel.background_color = COL_DEFAULT;
-	for (int i = arena_size.col; i<termsize.col; i++)
+	pixel.background_color = COL_WHITE;
+	for (int j = 0; j<termsize.row; j++)
+	{
+		compose_disp_pix(pixel, COMPOSE_BACK, (coordonee_t){arena_size.col,j});
+	}
+	pixel.background_color = COL_BLACK;
+	for (int i = arena_size.col+1; i<termsize.col; i++)
 	{
 		for (int j = 0; j<termsize.row; j++)
 		{
@@ -412,8 +434,8 @@ int    main()
 	joueur_score = 0;
 
 	cursor_pos=base_coordinate;
-	build_defense(&la_base);
 	path_reinit();
+	build_defense(&la_base);
 	//vie du joueur == vie de la base
 	joueur_vie=&(defense_array[offset_of(base_coordinate, arena_size.stride)].life);
 
@@ -595,6 +617,7 @@ void    main_loop(uint difficulty)
 		randomly_spawn_mobs(difficulty);
 		defenses_routine();
 		monsters_routine();
+		right_column_refresh();
 		compose_refresh();
 		turn+=1;
 	}
@@ -730,6 +753,54 @@ void damage_monster(monster_t **monster_ptr,int32_t damage){
 		kill_monster(monster_ptr);
 	}
 }
+
+void right_column_refresh(void){
+	coordonee_t box_size={.x=reserved-1,.y=1};
+	coordonee_t position={.x=termsize.col-reserved+1,.y=0};
+	compose_del_area(COMPOSE_ARENA, position, (coordonee_t){.x=termsize.col-1,.y=termsize.row-1});
+	char text[50];
+
+	sprintf(text, "%li", *joueur_vie);
+	compose_disp_text("vie de la base:", COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	position.y+=1;
+	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+
+	position.y+=2;
+	sprintf(text, "%li", joueur_ressources);
+	compose_disp_text("ressources:", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	position.y+=1;
+	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+
+	position.y+=2;
+	sprintf(text, "%li", joueur_score);
+	compose_disp_text("score:", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	position.y+=1;
+	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+
+	position.y+=3;
+	box_size.y=3;
+	//si on est en train de construire une défense, on affiche son texte
+	if (game_state==GAME_SELECT_DEF) {
+		if (sel_index<shown_tree->sub_category_count){
+			compose_disp_text(shown_tree->sub_categories[sel_index]->ui_txt,
+			                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		} else {
+			compose_disp_text(shown_tree->defenses[sel_index - shown_tree->sub_category_count]->ui_txt,
+			                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		}
+	} //sinon, on affiche les détails de la défense sous le curseur
+	defense_t selected_defense=defense_array[offset_of(cursor_pos, arena_size.stride)];
+	if (selected_defense.type!=NULL) {
+		sprintf(text, "vie: %li", selected_defense.life);
+		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		position.y+=1;
+		compose_disp_text(selected_defense.type->ui_txt,
+		                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	} else {
+		compose_disp_text("no defense under cursor", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	}
+}
+
 
 /*****************************
  *** MONSTER POOL UTILITIES ***

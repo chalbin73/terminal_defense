@@ -145,7 +145,7 @@ const defense_type_t basic_wall =
 const defense_type_t basic_turret =
 {
 	.max_life = 100,
-	.damage   = 150,
+	.damage   = 30,
 	.range    = 10,
 	.cost     = 200,
 	.sprite   =
