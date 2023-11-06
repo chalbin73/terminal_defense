@@ -7,8 +7,12 @@
 /****************************
  *** FONCTIONS UTILITAIRES ***
  *****************************/
+#if SYSTEM_POSIX
+struct timespec last_frame_time={0,0};
+#elif SYSTEM_WINDOWS
+long last_frame_time=0;
+#endif
 
-clock_t last_frame_time=0;
 void   *safe_malloc(size_t size)
 {
 	//obtient de la place mémoire et vérifie qu'elle a bien été alouée
@@ -63,16 +67,26 @@ int    wait(long ms)
 
 //attend la prochaine frame
 void wait_for_next_frame(void){
-	clock_t actual_time=clock();
-	long int diff_in_ms=(actual_time-last_frame_time)/CLOCKS_PER_MSEC;
+#if SYSTEM_POSIX
+	struct timespec actual_time;
+	clock_gettime(CLOCK_MONOTONIC, &actual_time);
+	long int diff_in_ms=(actual_time.tv_nsec-last_frame_time.tv_nsec)/1000000 + //nanoseconde component
+	                     (actual_time.tv_sec - last_frame_time.tv_sec)*1000; //second component
 	if (diff_in_ms<0 || diff_in_ms>FRAME_TIME) {
 		//heavily lagging,
 		//clock uninitialized or looped around (32-bits maybe)
 		last_frame_time=actual_time;
 	} else {
-		last_frame_time=last_frame_time+FRAME_TIME*CLOCKS_PER_MSEC;
-		wait(diff_in_ms);
+		last_frame_time.tv_nsec+= FRAME_TIME * 1000000;  //on ajoute FRAME_TIME millisecondes
+		if (last_frame_time.tv_nsec>=1000000000){
+			last_frame_time.tv_nsec-=1000000000;
+			last_frame_time.tv_sec+=1;
+		}
+		wait(FRAME_TIME-diff_in_ms);
 	}
+#elif SYSTEM_WINDOWS
+#error Clock not yet implemented on windows.
+#endif
 }
 
 /*****************

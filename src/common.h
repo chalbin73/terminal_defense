@@ -11,10 +11,7 @@
 #include <time.h>
 
 //nombre de cycle de clock en une miliseconde
-#define CLOCKS_PER_MSEC ( CLOCKS_PER_SEC / 1000 )
-#if ( CLOCKS_PER_MSEC == 0 )
-	#error Clock resolution to low to run properly the game. Aborting compilation
-#endif
+#define CLOCKS_PER_MSEC ( (CLOCKS_PER_SEC) / 1000 )
 #define FRAME_TIME 100
 
 #if defined(__unix__) || (defined (__APPLE__) && defined ( __MACH__) )
