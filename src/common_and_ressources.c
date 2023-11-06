@@ -53,6 +53,7 @@ int32_t max(int32_t a, int32_t b){
 //attend ms milliseconde
 int    wait(long ms)
 {
+    // Si le système cible est linux
 	#if SYSTEM_POSIX
 	//nanosleep accept un struct en seconds et nanoseconds
 	//on convertit donc l'entrée
@@ -60,7 +61,7 @@ int    wait(long ms)
 	ts.tv_sec  = ms / 1000;
 	ts.tv_nsec = (ms % 1000) * 1000000;
 	return nanosleep(&ts, &ts);
-	#else
+	#else // Si le système cible est autre chose (windows)
 	return Sleep(ms);
 	#endif
 }
@@ -93,6 +94,7 @@ void wait_for_next_frame(void){
  *** RESSOURCES ***
  ******************/
 
+// Types de monstres
 const monster_type_t runner =
 {
 	.speed    = 4,
@@ -124,7 +126,7 @@ const monster_type_t armored =
 	}
 };
 
-
+// Types de defenses
 const defense_type_t basic_wall =
 {
 	.max_life = 1000,
@@ -277,6 +279,7 @@ const picture_t frame =
 };
 
 
+// L'arbre de selection des tourelles
 const defence_choice_tree_t main_selection_tree =
 {
 	.icon               = {
