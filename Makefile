@@ -8,7 +8,7 @@ CFLAGS=-std=c99 $(WARNINGS) -Isrc/
 LDFLAGS=${WARNINGS}
 
 RELEASE_FLAGS=-O3
-DEBUG_FLAGS=-g -Og
+DEBUG_FLAGS=-ggdb -g3 -O0 -fno-inline
 
 SOURCES=
 SOURCES+=common_and_ressources.c

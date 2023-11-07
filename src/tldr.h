@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <inttypes.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -259,7 +260,8 @@ void           hide_selection(void);
 void           augment_selection(void);
 // Diminue la selection de 1 (et update le selecteur graphique)
 void           diminish_selection(void);
-
+//met/enlève la pause
+void toogle_pause(void);
 /*****************
  ***MONSTER POOL***
  ******************/

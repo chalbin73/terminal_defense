@@ -9,6 +9,7 @@ enum keys {
 	KEY_LEFT = 'q',
 	KEY_RIGHT = 'd',
 	KEY_BUILD = 'c',
+	KEY_PAUSE = 'p',
 };
 
 //** COULEURS  **

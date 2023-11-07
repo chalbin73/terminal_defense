@@ -248,7 +248,7 @@ void update_pathfinder_from(coordonee_t position){
 	pathfinder_data here_after;
 
 	//tant qu'il reste des case a traiter
-	while (borne_inf!=borne_sup+1) {
+	while (borne_inf!=borne_sup+1 && !( borne_inf == pos_list_size && borne_sup==0 ) ) {
 		//position de la case a traiter
 		position=position_list[borne_inf];
 		//indice dans les tableau
@@ -269,7 +269,7 @@ void update_pathfinder_from(coordonee_t position){
 			};
 		} else {
 			here_after=(pathfinder_data){
-				.distance=UINT64_MAX,
+				.distance=INT64_MAX,
 				.next=DIR_NOWHERE,
 			};
 			for (DIRECTION direction=DIR_UP; direction<DIR_NOWHERE; direction++) {
@@ -430,7 +430,7 @@ int    main()
 		.y=arena_size.row/2,
 	};
 
-	joueur_ressources = 500;
+	joueur_ressources = 10000;
 	joueur_score = 0;
 
 	cursor_pos=base_coordinate;
@@ -490,6 +490,11 @@ void    treat_input(void)
 		case KEY_LEFT:
 			if (game_state==GAME_PLAYING)
 				move_cursor(DIR_LEFT);
+			else if (game_state==GAME_SELECT_DEF) {
+				//on abandonne la séléction
+				hide_selection();
+				game_state=GAME_PLAYING;
+			};
 			break;
 		case KEY_RIGHT:
 			if (game_state==GAME_PLAYING)
@@ -500,8 +505,12 @@ void    treat_input(void)
 			}
 			break;
 		case KEY_BUILD:
-			select_defense();
+			if (game_state!=GAME_PAUSED) {
+				select_defense();
+			}
 			break;
+		case KEY_PAUSE:
+			toogle_pause();
 		}
 	}
 }
@@ -612,14 +621,18 @@ void    main_loop(uint difficulty)
 	while (*joueur_vie>0)
 	{
 		wait_for_next_frame();
-		if (turn%2)blink_cursor();
-		treat_input();
-		randomly_spawn_mobs(difficulty);
-		defenses_routine();
-		monsters_routine();
-		right_column_refresh();
-		compose_refresh();
-		turn+=1;
+		if (game_state==GAME_PAUSED) {
+			treat_input();
+		} else {
+			if (turn%2) blink_cursor();
+			treat_input();
+			randomly_spawn_mobs(difficulty);
+			defenses_routine();
+			monsters_routine();
+			right_column_refresh();
+			compose_refresh();
+			turn+=1;
+		}
 	}
 	return;
 }
@@ -759,20 +772,21 @@ void right_column_refresh(void){
 	coordonee_t position={.x=termsize.col-reserved+1,.y=0};
 	compose_del_area(COMPOSE_ARENA, position, (coordonee_t){.x=termsize.col-1,.y=termsize.row-1});
 	char text[50];
-
-	sprintf(text, "%li", *joueur_vie);
+	//PRId64 est une macro pour print les int64_t (ld ou lld selon les systèmes)
+	//PRIu64 our les unsigned
+	sprintf(text, "%" PRId64, *joueur_vie);
 	compose_disp_text("vie de la base:", COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 	position.y+=1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
 	position.y+=2;
-	sprintf(text, "%li", joueur_ressources);
+	sprintf(text, "%" PRIu64, joueur_ressources);
 	compose_disp_text("ressources:", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 	position.y+=1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
 	position.y+=2;
-	sprintf(text, "%li", joueur_score);
+	sprintf(text, "%" PRIu64, joueur_score);
 	compose_disp_text("score:", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 	position.y+=1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
@@ -785,22 +799,46 @@ void right_column_refresh(void){
 			compose_disp_text(shown_tree->sub_categories[sel_index]->ui_txt,
 			                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 		} else {
-			compose_disp_text(shown_tree->defenses[sel_index - shown_tree->sub_category_count]->ui_txt,
+			defense_type_t selected_def_type=*shown_tree->defenses[sel_index - shown_tree->sub_category_count];
+			sprintf(text, "coût: %ud", selected_def_type.cost);
+			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+			position.y+=1;
+			compose_disp_text(selected_def_type.ui_txt,
 			                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 		}
-	} //sinon, on affiche les détails de la défense sous le curseur
-	defense_t selected_defense=defense_array[offset_of(cursor_pos, arena_size.stride)];
-	if (selected_defense.type!=NULL) {
-		sprintf(text, "vie: %li", selected_defense.life);
-		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
-		position.y+=1;
-		compose_disp_text(selected_defense.type->ui_txt,
-		                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 	} else {
-		compose_disp_text("no defense under cursor", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		//sinon, on affiche les détails de la défense sous le curseur
+		defense_t selected_defense=defense_array[offset_of(cursor_pos, arena_size.stride)];
+		if (selected_defense.type!=NULL) {
+			sprintf(text, "vie: %" PRIu64, selected_defense.life);
+			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+			position.y+=1;
+			compose_disp_text(selected_defense.type->ui_txt,
+			                  COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		} else {
+			compose_disp_text("no defense under cursor", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		}
 	}
 }
-
+void toogle_pause(void){
+	coordonee_t pos_of_text=(coordonee_t){(termsize.col-13)/2,(termsize.row-3)/2};
+	if (game_state==GAME_PAUSED) {
+		game_state=GAME_PLAYING;
+		//la ou on avait affiché jeu en pause
+		compose_del_area(COMPOSE_UI,pos_of_text,(coordonee_t){pos_of_text.x+13,pos_of_text.y+3});
+		compose_refresh();
+	} else {
+		hide_selection();
+		game_state=GAME_PAUSED;
+		compose_disp_text(
+			"*************"
+			"*GAME PAUSED*"
+			"*************",
+			COL_MAGENTA, COL_GRAY_DARK, COMPOSE_UI,
+			//au centre de l'ecran
+			pos_of_text, (coordonee_t){13,3});
+	}
+}
 
 /*****************************
  *** MONSTER POOL UTILITIES ***
