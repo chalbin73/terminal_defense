@@ -192,9 +192,10 @@ void           show_cursor(void);
 void           clear_input(void);
 
 // @brief bouge le curseur dans la direction demandée
-void         move_cursor(DIRECTION dir);
+void           move_cursor(DIRECTION dir, bool fast);
+
 //update l'affichage de la colonne de status (droite de l'écran)
-void right_column_refresh(void);
+void           right_column_refresh(void);
 
 /*** PATHFINDER ***/
 
@@ -261,7 +262,7 @@ void           augment_selection(void);
 // Diminue la selection de 1 (et update le selecteur graphique)
 void           diminish_selection(void);
 //met/enlève la pause
-void toogle_pause(void);
+void           toogle_pause(void);
 /*****************
  ***MONSTER POOL***
  ******************/
