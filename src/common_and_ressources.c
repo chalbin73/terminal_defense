@@ -51,7 +51,7 @@ int32_t max(int32_t a, int32_t b){
 
 
 //attend ms milliseconde
-int    wait(long ms)
+int    tldr_wait(long ms)
 {
     // Si le système cible est linux
 	#if SYSTEM_POSIX
@@ -83,7 +83,7 @@ void wait_for_next_frame(void){
 			last_frame_time.tv_nsec-=1000000000;
 			last_frame_time.tv_sec+=1;
 		}
-		wait(FRAME_TIME-diff_in_ms);
+		tldr_wait(FRAME_TIME-diff_in_ms);
 	}
 #elif SYSTEM_WINDOWS
 #error Clock not yet implemented on windows.
