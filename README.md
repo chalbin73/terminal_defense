@@ -48,3 +48,17 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Pour les en empécher, construisez des défenses (mur/tourelle)
  - le jeu se termine lorsque vous mourez (vie de la base a 0),
  que le jeu crash (ca n'arrive pas, normalement) ou que vous quitez le jeu avec le raccourcis clavier
+
+## Structure du projet
+
+* `Makefile` contient les commandes de compilation.
+* `build` dossier créé à la compilation, contient les fichiers objets pour générer l'executable
+* `src` Contient le code source
+
+## Structure du code
+
+* `tldr.c` Contient le code principale du jeu en lui même
+* `tldr.h` Contient les definitions de structures et fonctions du jeu
+* `graphical.h` `graphical.c` Contient le code relatif au rendu "graphique" dans le terminal
+* `common.h` `common_and_ressources.c` Contient des utilitaires communs à tout le projet, plus les ressources du projet
+* `config.h` Contient la configuration du jeu, elle est faite pour être modifié
