@@ -8,7 +8,6 @@ Un tower defense en terminal, codé en C, sans dépandences externes.
 il est possbile de tester le jeu sans l'installer en se connéctant en ssh de la manière suivante:
 `ssh -4Cp 389 insecure@mwaaa.fr`
 sh va vous demander d'accépter une clé publique, répondez oui (ou yes)
-il va ensuite vous demander un mot de passe: c'est `tldr-project`. Voila, le jeu se lance
 NB: Il n'est pas possible de cette manière de modifier les raccourcis claviers
 NB: Cette solution est mise a disposition car le programme fonctionne très mal sur caséine (lag + timeout + mauvais rendu)
 ### Linux/unix
