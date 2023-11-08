@@ -53,7 +53,7 @@ int32_t max(int32_t a, int32_t b){
 //attend ms milliseconde
 int    tldr_wait(long ms)
 {
-    // Si le système cible est linux
+	// Si le système cible est linux
 	#if SYSTEM_POSIX
 	//nanosleep accept un struct en seconds et nanoseconds
 	//on convertit donc l'entrée
@@ -99,7 +99,8 @@ const monster_type_t runner =
 {
 	.speed    = 4,
 	.damage   = 10,
-	.max_life = 200,
+	.base_life = 20,
+	.given_ressources = 20,
 	.sprite   =
 	{
 		.color            = COL_RED,
@@ -114,7 +115,8 @@ const monster_type_t armored =
 {
 	.speed    = 10,
 	.damage   = 30,
-	.max_life = 1000,
+	.base_life = 100,
+	.given_ressources = 30,
 	.sprite   =
 	{
 		.color            = COL_CYAN,
@@ -129,7 +131,7 @@ const monster_type_t armored =
 // Types de defenses
 const defense_type_t basic_wall =
 {
-	.max_life = 1000,
+	.max_life = 500,
 	.damage   = 0,
 	.cost     = 100,
 	.range    = 0,
@@ -142,24 +144,87 @@ const defense_type_t basic_wall =
 		.c3               = '\xBF',
 		.c4               = '\0',
 	},
-	.ui_txt               = "Basic walls"
+	.ui_txt               = "Mur basique"
+};
+const defense_type_t advanced_wall = {
+	.max_life = 3000,
+	.damage   = 0,
+	.cost     = 500,
+	.range    = 0,
+	.sprite = {
+		.color = COL_GREEN,
+		.background_color = COL_DEFAULT,
+		.c1               = '\xE2', //⣿
+		.c2               = '\xA3',
+		.c3               = '\xBF',
+		.c4               = '\0',
+	},
+	.ui_txt = "Mur bien plus résistant"
+};
+const defense_type_t electric_wall = {
+	.max_life = 1500,
+	.damage   = 50,
+	.cost     = 750,
+	.range    = 1,
+	.sprite = {
+		.color = COL_CYAN,
+		.background_color = COL_DEFAULT,
+		.c1               = '\xE2', //⣿
+		.c2               = '\xA3',
+		.c3               = '\xBF',
+		.c4               = '\0',
+	},
+	.ui_txt = "Mur éléctrique: fait des dégats au monstres le touchant"
 };
 const defense_type_t basic_turret =
 {
-	.max_life = 100,
-	.damage   = 30,
-	.range    = 10,
+	.max_life = 50,
+	.damage   = 15,
+	.range    = 7,
 	.cost     = 200,
 	.sprite   =
 	{
-		.color            = COL_CYAN,
+		.color            = COL_MAGENTA,
 		.background_color = COL_DEFAULT,
 		.c1               = '\xc2', //¶
 		.c2               = '\xb6',
 		.c3               = '\0',
 		.c4               = '\0',
 	},
-	.ui_txt               = "Basic turret"
+	.ui_txt               = "Tourelle de base"
+};
+const defense_type_t long_range_turret = {
+	.max_life = 50,
+	.damage   = 25,
+	.range    = 14,
+	.cost     = 1000,
+	.sprite   =
+	{
+		.color            = COL_WHITE,
+		.background_color = COL_DEFAULT,
+		.c1               = '\xc2', //¶
+		.c2               = '\xb6',
+		.c3               = '\0',
+		.c4               = '\0',
+	},
+	.ui_txt               = "Tourelle avancée tirant a grande distance"
+};
+const defense_type_t heavy_turret = {
+	.max_life = 50,
+	.damage   = 50,
+	.range    = 8,
+	.cost     = 1500,
+	.sprite   =
+	{
+		.color            = COL_BLUE,
+		.background_color = COL_DEFAULT,
+		.c1               = '\xc2', //¶
+		.c2               = '\xb6',
+		.c3               = '\0',
+		.c4               = '\0',
+	},
+	.ui_txt               = "Tourelle avancée infligeant de gros dégats"
+
 };
 const defense_type_t la_base =
 {
@@ -176,7 +241,7 @@ const defense_type_t la_base =
 		.c3               = '\x91',
 		.c4               = 0,
 	},
-	.ui_txt               = "Your base, defend it!"
+	.ui_txt               = "Vôtre base, defensez la!"
 };
 
 // Un cadre pour afficher les choix de selection
@@ -280,6 +345,53 @@ const picture_t frame =
 
 
 // L'arbre de selection des tourelles
+const defence_choice_tree_t walls = {
+	.icon = {
+		.c1               = 'M',
+		.c2               = '\0',
+		.c3               = '\0',
+		.c4               = '\0',
+		.color            = COL_TEXT,
+		.background_color = COL_DEFAULT
+	},
+	.ui_txt             = "Murs",
+	.defense_count = 3,
+	.defenses = (const defense_type_t * [3] )
+	{
+		[0] = &electric_wall,
+		[1] = &advanced_wall,
+		[2] = &basic_wall,
+	},
+	.sub_category_count=1,
+	.sub_categories     = (const defence_choice_tree_t * [1])
+	{
+		[0] = &main_selection_tree,
+	}
+};
+const defence_choice_tree_t turrets = {
+	.icon = {
+		.c1               = 'T',
+		.c2               = '\0',
+		.c3               = '\0',
+		.c4               = '\0',
+		.color            = COL_TEXT,
+		.background_color = COL_DEFAULT
+	},
+	.ui_txt             = "Tourelles",
+	.defense_count = 3,
+	.defenses = (const defense_type_t * [3] )
+	{
+		[0] = &heavy_turret,
+		[1] = &long_range_turret,
+		[2] = &basic_turret,
+	},
+	.sub_category_count=1,
+	.sub_categories     = (const defence_choice_tree_t * [1])
+	{
+		[0] = &main_selection_tree,
+	}
+};
+
 const defence_choice_tree_t main_selection_tree =
 {
 	.icon               = {
@@ -290,19 +402,16 @@ const defence_choice_tree_t main_selection_tree =
 		.color            = COL_TEXT,
 		.background_color = COL_DEFAULT
 	},
-	.ui_txt             = "Defenses",
+	.ui_txt             = "Menu de construction principal",
 
-	.defense_count = 2,
-	.defenses      = (const defense_type_t * [2] )
-	{
-		[0] = &basic_turret,
-		[1] = &basic_wall,
-	},
+	.defense_count = 0,
+	.defenses      = NULL,
 
-	.sub_category_count = 1,
-	.sub_categories     = (const defence_choice_tree_t * [1])
+	.sub_category_count = 2,
+	.sub_categories     = (const defence_choice_tree_t * [2])
 	{
-		[0] = &main_selection_tree, // LOOP FOR TESTING PURPOSES
+		[0] = &walls,
+		[1] = &turrets,
 	}
 };
 

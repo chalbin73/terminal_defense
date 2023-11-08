@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <signal.h>
+#include <math.h>
 
 #include "config.h"
 #include "graphical.h"
@@ -44,12 +45,13 @@ typedef enum
 typedef struct
 {
     pixel_t    sprite;
-    int32_t    max_life;
+    int32_t    base_life;
     //en frame/cases
     //+ élevé = plus lent
     uint       speed;
     //damage/frame
     uint       damage;
+	uint       given_ressources;
 
 } monster_type_t;
 
@@ -249,6 +251,8 @@ void           damage_monster(monster_t **monster_ptr, int32_t damage);
 
 // @brief selectionne la défense
 void           select_defense(void);
+//contruit la dernière defense construite
+void fast_build(void);
 // @brief construit une défense au niveau du curseur
 void           build_defense(const defense_type_t   *defense_type);
 // Affiche le menu de selection de defense

@@ -5,8 +5,12 @@ Un tower defense en terminal, codé en C, sans dépandences externes.
 
 ## Build instruction
 ### Tous systèmes (incluant Windows/linux)
-il est possbile de tester le jeu sans l'installer en se connéctant en ssh de la manière suivante:
-`ssh -4Cp 389 insecure@mwaaa.fr`
+il est possbile de tester le jeu sans l'installer a l'aide de ssh (demande une connexion internet):
+ - en commande `ssh -Cp 389 insecure@mwaaa.fr`
+ - avec un client ssh, renseignez les informations suivantes
+   - Adresse: mwaaa.fr
+   - Nom d'utilisateur: insecure
+   - Port: 389
 sh va vous demander d'accépter une clé publique, répondez oui (ou yes)
 NB: Il n'est pas possible de cette manière de modifier les raccourcis claviers
 NB: Cette solution est mise a disposition car le programme fonctionne très mal sur caséine (lag + timeout + mauvais rendu)
