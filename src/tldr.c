@@ -539,7 +539,11 @@ void    treat_input(void)
     char input;
     while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
     {
-        bool isupper = false;
+        bool is_upper = false;
+		if (isupper(input)) {
+			is_upper = true;
+			input+=32; //on le met en minuscule (voire table ascii)
+		}
         switch (input)
         {
         case '\33':
@@ -552,34 +556,25 @@ void    treat_input(void)
             exit(130);
 
         // HAUT
-        case KEY_UP - 32: // Soustraire 32 à un char le met en majuscule (voir la table ascii)
-            isupper = true;
-            __attribute__( (fallthrough) ); // Cela permet d'éviter un warning en indiquant au compilateur que ce case peut passer au suivant
         case KEY_UP:
             if (game_state==GAME_PLAYING)
-                move_cursor(DIR_UP, isupper);
+                move_cursor(DIR_UP, is_upper);
             else if (game_state==GAME_SELECT_DEF)
                 augment_selection();
             break;
 
         // BAS
-        case KEY_DOWN - 32: // Soustraire 32 à un char le met en majuscule (voir la table ascii)
-            isupper = true;
-            __attribute__( (fallthrough) );
         case KEY_DOWN:
             if (game_state==GAME_PLAYING)
-                move_cursor(DIR_DOWN, isupper);
+                move_cursor(DIR_DOWN, is_upper);
             else if (game_state==GAME_SELECT_DEF)
                 diminish_selection();
             break;
 
         // GAUCHE
-        case KEY_LEFT - 32: // Soustraire 32 à un char le met en majuscule (voir la table ascii)
-            isupper = true;
-            __attribute__( (fallthrough) );
         case KEY_LEFT:
             if (game_state==GAME_PLAYING)
-                move_cursor(DIR_LEFT, isupper);
+                move_cursor(DIR_LEFT, is_upper);
             else if (game_state==GAME_SELECT_DEF)
             {
                 //on abandonne la séléction
@@ -590,12 +585,9 @@ void    treat_input(void)
             break;
 
         // DROITE
-        case KEY_RIGHT - 32: // Soustraire 32 à un char le met en majuscule (voir la table ascii)
-            isupper = true;
-            __attribute__( (fallthrough) );
         case KEY_RIGHT:
             if (game_state==GAME_PLAYING)
-                move_cursor(DIR_RIGHT, isupper);
+                move_cursor(DIR_RIGHT, is_upper);
             if(game_state==GAME_SELECT_DEF)
             {
                 select_defense();
@@ -604,13 +596,20 @@ void    treat_input(void)
         case KEY_BUILD:
             if (game_state!=GAME_PAUSED)
             {
-                select_defense();
+				if (game_state==GAME_PLAYING && is_upper) {
+					fast_build();
+				}else{
+					select_defense();
+				}
             }
             break;
         case KEY_PAUSE:
             toogle_pause();
         }
     }
+}
+void fast_build(void){
+	
 }
 //construit une defense a la position du curseur
 void    build_defense(const defense_type_t   *defense_type)
