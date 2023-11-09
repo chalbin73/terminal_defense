@@ -432,14 +432,14 @@ const defence_choice_tree_t main_selection_tree =
 {
     .icon                 =
     {
-        .c1               = 'D',
-        .c2               = '\0',
-        .c3               = '\0',
+        .c1               = 0xE2,
+        .c2               = 0x86,
+        .c3               = 0x90,
         .c4               = '\0',
         .color            = COL_TEXT,
         .background_color = COL_DEFAULT
     },
-    .short_txt = "Menu de construction principal",
+    .short_txt = "Retour",
     .desc_txt  = "Menu de construction principal",
 
     .defense_count = 0,
