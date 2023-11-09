@@ -25,10 +25,10 @@
 // Represente une direction dans les jeu
 typedef enum
 {
-    DIR_UP     = 0,
-    DIR_DOWN   = 1,
-    DIR_RIGHT  = 2,
-    DIR_LEFT   = 3,
+    DIR_RIGHT     = 0,
+    DIR_LEFT   = 1,
+    DIR_UP  = 2,
+    DIR_DOWN   = 3,
     DIR_NOWHERE=4,//valeur spéciale, indiquant un manque d'information
 } DIRECTION;
 

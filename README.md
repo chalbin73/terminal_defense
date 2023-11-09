@@ -47,7 +47,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Les monstres (les flèches a gauche de l'écran) tentent d'atteindre et de détruire vôtre base (a droite de l'écran)
  - Pour les en empécher, construisez des défenses (mur/tourelle)
  - le jeu se termine lorsque vous mourez (vie de la base a 0),
- que le jeu crash (ca n'arrive pas, normalement) ou que vous quitez le jeu avec le raccourcis clavier
+ que le jeu crash (ca n'arrive pas, normalement) ou que vous quittez le jeu avec le raccourcis clavier
 
 ## Structure du projet
 

@@ -2,6 +2,7 @@
 #define CONFIG
 
 //** raccourcis claviers **
+//vous devez mettre des lettres minuscule (Ctrl+Char autorisé pour key_quit et key_pause)
 enum keys {
 	KEY_QUIT = '', //Ctrl+C
 	KEY_UP = 'z',

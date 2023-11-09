@@ -170,7 +170,7 @@ void    spawn_monster(const monster_type_t *type, coordonee_t position)
 	*monster = (monster_t)
 	{
 		.type                 = type,
-		.vie                  = type->base_life*(5+ turn/100),
+		.vie                  = type->base_life*(3+ turn/110),
 		.last_action_turn     = turn,
 		.next_monster_in_room = monster_positions[offset_of(position, arena_size.stride)],
 	};
@@ -181,6 +181,7 @@ void    spawn_monster(const monster_type_t *type, coordonee_t position)
 void    kill_monster(monster_t  **monster_ptr)
 {
 	joueur_ressources+=(*monster_ptr)->type->given_ressources;
+	joueur_score+=(*monster_ptr)->type->given_ressources/10;
 	monster_t *next_monster = (*monster_ptr)->next_monster_in_room;
 	monster_pool_dealloc(*monster_ptr);
 	*monster_ptr = next_monster;
@@ -315,7 +316,7 @@ void    update_pathfinder_from(coordonee_t position)
 				.distance = INT64_MAX,
 				.next     = DIR_NOWHERE,
 			};
-			for (DIRECTION direction = DIR_UP; direction<DIR_NOWHERE; direction++)
+			for (DIRECTION direction = 0; direction<DIR_NOWHERE; direction++)
 			{
 				//pour chaque direction cardinale
 				coordonee_t neighbor = neighbor_of(position, direction);
@@ -342,11 +343,12 @@ void    update_pathfinder_from(coordonee_t position)
 				}
 			}//fin du for
 
-			here_after.distance += 1;
 			if (defense_array[offset_of(position, arena_size.stride)].type != NULL)
 			{
 				//on est sur une défense, on augmente la "taille" du chemin selon la vie
-				here_after.distance += defense_array[offset_of(position, arena_size.stride)].life / 100;
+				here_after.distance += max(defense_array[offset_of(position, arena_size.stride)].life / 10 - 6, 1);
+			} else {
+				here_after.distance += 10;
 			}
 		}//fin du if(pos_base) else
 
@@ -354,7 +356,7 @@ void    update_pathfinder_from(coordonee_t position)
 		//si on s'est recalculé avec succès
 		if ( here_after.next != DIR_NOWHERE )
 		{
-			for (DIRECTION direction = DIR_UP; direction<DIR_NOWHERE; direction++)
+			for (DIRECTION direction = 0; direction<DIR_NOWHERE; direction++)
 			{
 				//on update jamais le voisin sur lequel on pointe
 				if (direction==here_after.next)
@@ -509,7 +511,7 @@ int    main()
 		.y = arena_size.row / 2,
 	};
 
-	joueur_ressources = 1000;
+	joueur_ressources = 3000;
 	joueur_score      = 0;
 	derniere_construction=NULL;
 
@@ -532,7 +534,7 @@ int    main()
 	//on lance le jeu
 	game_state = GAME_PLAYING;
 	turn       = 0;
-	main_loop(10);
+	main_loop(8);
 	EXIT_MSG = "You died!";
 	return EXIT_SUCCESS;
 }
@@ -613,7 +615,7 @@ void    treat_input(void)
 	}
 }
 void fast_build(void){
-	if (derniere_construction!=NULL) {
+	if (derniere_construction!=NULL && defense_array[offset_of(cursor_pos, arena_size.stride)].type==NULL) {
 		build_defense(derniere_construction);
 	}
 }
@@ -658,7 +660,7 @@ void    select_defense(void)
 		if (sel_index<shown_tree->sub_category_count)
 		{
 			shown_tree = shown_tree->sub_categories[sel_index];
-			sel_index=0;	
+			sel_index=0;
 			display_selection();
 			return;
 		} //else
@@ -861,23 +863,29 @@ void    monsters_routine(void)
 void    randomly_spawn_mobs(int difficulty)
 {
 	//TODO: improve, this is realy crude
-	if (rand() % difficulty*5==0)
+	if (rand() % 10 ==0)
 	{
 		int borne_sup=rand()%turn;
-		for (int i = 1; i*i<borne_sup; i+=difficulty/5+1) {
+		for (int i = 1; i*i*i*i<borne_sup; i+=15/difficulty+1) {
 			coordonee_t spawn_location =
 			{
 				.x = 0,
 				.y = rand() % arena_size.row,
 			};
 			const monster_type_t *type;
-			if (rand() % 2)
-			{
-				type = &runner;
-			}
-			else
-			{
+			//avoid spawning runner in to early game
+			if (turn<100) {
 				type = &armored;
+			} else {
+				//sinon, une chance sur 2
+				if (rand() % 2)
+				{
+					type = &runner;
+				}
+				else
+				{
+					type = &armored;
+				}
 			}
 			spawn_monster(type, spawn_location);
 		}
@@ -893,9 +901,10 @@ void    damage_defense(coordonee_t target_position, uint32_t damage)
 	int32_t new_life      = previous_life - damage;
 
 	//si la défence est détruite, on retire son type (intérprété comme une abscence de défense)
-	if (new_life<0)
+	if (new_life<0) {
 		target->type = NULL;
-	else
+		target->life = 0;
+	}else
 		target->life = new_life;
 
 	if (previous_life / 100!=new_life / 100)
@@ -1009,7 +1018,7 @@ void    right_column_refresh(void)
 		else
 		{
 			defense_type_t selected_def_type = *shown_tree->defenses[sel_index - shown_tree->sub_category_count];
-			sprintf(text, "coût: %ui", selected_def_type.cost);
+			sprintf(text, "coût: %u", selected_def_type.cost);
 			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 			position.y += 1;
 			compose_disp_text(

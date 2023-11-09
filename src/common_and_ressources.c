@@ -97,9 +97,9 @@ void wait_for_next_frame(void){
 // Types de monstres
 const monster_type_t runner =
 {
-	.speed    = 4,
-	.damage   = 10,
-	.base_life = 20,
+	.speed    = 2,
+	.damage   = 5,
+	.base_life = 15,
 	.given_ressources = 20,
 	.sprite   =
 	{
@@ -131,7 +131,7 @@ const monster_type_t armored =
 // Types de defenses
 const defense_type_t basic_wall =
 {
-	.max_life = 500,
+	.max_life = 600,
 	.damage   = 0,
 	.cost     = 100,
 	.range    = 0,
@@ -147,7 +147,7 @@ const defense_type_t basic_wall =
 	.ui_txt               = "Mur basique"
 };
 const defense_type_t advanced_wall = {
-	.max_life = 3000,
+	.max_life = 3500,
 	.damage   = 0,
 	.cost     = 500,
 	.range    = 0,
