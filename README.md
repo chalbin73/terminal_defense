@@ -1,17 +1,17 @@
-# TLDR;
-## Tower L** Defense R****;
+# TerminalDefense
+## un Tower Defense en terminal
 
-Un tower defense en terminal, codé en C, sans dépandences externes.
+Un tower defense en terminal, codé en C, sans dépandences externes (a part queqlques librairies standard).
 
 ## Build instruction
 ### Tous systèmes (incluant Windows/linux)
 il est possbile de tester le jeu sans l'installer a l'aide de ssh (demande une connexion internet):
- - en commande `ssh -Cp 389 insecure@mwaaa.fr`
+ - en commande `ssh -4Cp 389 insecure@mwaaa.fr`
+    Il vous serra demandé, la première fois, d'accepter une clé ssh (répondez oui ou yes, selon la langue)
  - avec un client ssh, renseignez les informations suivantes
    - Adresse: mwaaa.fr
    - Nom d'utilisateur: insecure
    - Port: 389
-sh va vous demander d'accépter une clé publique, répondez oui (ou yes)
 NB: Il n'est pas possible de cette manière de modifier les raccourcis claviers
 NB: Cette solution est mise a disposition car le programme fonctionne très mal sur caséine (lag + timeout + mauvais rendu)
 ### Linux/unix
@@ -19,11 +19,12 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Installez `make` et un compilateur C (par ex `gcc`)
     Ceux ci sont généralement disponible dans le paquet `base-devel`
  - Téléchargez touts les fichier du projet
+ - dézipez l'archive des sources (en terminal: `unzip src.zip`)
  - si vous le souhaitez, modifiez les raccourcis claviers dans le fichier `src/config.h`
- - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `tldr`
+ - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `TerminalDefense` (lancable avec `./TerminalDefense`)
 ### Windows
  Voici les différente possibilité, du plus facile au plus compliqué
- - utilisez la version ssh
+ - utilisez la version ssh (pour tester les warnigns de compilation, vous pouvez aller sur caséine, mais lancer le programme desus est déconséillé)
  - vous avez déja wsl/une vm linux: suivez les instruction de build linux en l'utilisant
  - installez make et gcc sur windows a l'aide de cygiwin ou autre équivalent, puis suivez les instruction de build linux (peut ne pas fonctionner)
 
@@ -41,7 +42,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
     - la touche pause (par défault p)
     - quiter le jeu (par défault `Ctrl+c`)
 3) Lancez le jeu
- - si vous avez compilé, l'executable se nomme tldr et peut se lancer avec la commande `./tldr` dans le dossier du jeu
+ - si vous avez compilé, l'executable se nomme TerminalDefense et peut se lancer avec la commande `./TerminalDefense` dans le dossier du jeu
  - si vous utilisez la version ssh, relancer simplement la commande ssh ( ` ssh -4Cp 389 insecure@mwaaa.fr ` )
 4) Survivez!
  - Les monstres (les flèches a gauche de l'écran) tentent d'atteindre et de détruire vôtre base (a droite de l'écran)
@@ -53,8 +54,12 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
 
 * zqsd : Deplacement du curseur
 * Maj maintenu : Deplacement du curseur 5x plus rapide
-* c : Ouverture du menu construction (navigation avec zsd, et validation avec c)
-* Maj+c construit la dernière défence construite
+* c : Ouverture du menu construction
+  - séléction avec les touche de déplacement
+  - annulation avec déplacement a gauche
+  - validation avec déplacment a droite/touche de construction
+* Maj aintenu: construit la dernière défence construite (pas de séléction)
+* Ctrl+c: Quitter le programme
 
 ## Structure du projet
 
@@ -64,8 +69,8 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
 
 ## Structure du code
 
-* `tldr.c` Contient le code principale du jeu en lui même
-* `tldr.h` Contient les definitions de structures et fonctions du jeu
+* `terminaldefense.c` Contient le code principale du jeu en lui même
+* `terminaldefense.h` Contient les definitions de structures et fonctions du jeu
 * `graphical.h` `graphical.c` Contient le code relatif au rendu "graphique" dans le terminal
 * `common.h` `common_and_ressources.c` Contient des utilitaires communs à tout le projet, plus les ressources du projet
 * `config.h` Contient la configuration du jeu, elle est faite pour être modifié

@@ -72,7 +72,7 @@ int32_t    min(int32_t a, int32_t b);
 int32_t    max(int32_t a, int32_t b);
 
 //attend ms milliseconde
-int tldr_wait(long int ms);
+int td_wait(long int ms);
 //attend la prochaine frame
 void wait_for_next_frame(void);
 

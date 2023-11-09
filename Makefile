@@ -13,13 +13,13 @@ DEBUG_FLAGS=-ggdb -g3 -O0 -fno-inline
 SOURCES=
 SOURCES+=common_and_ressources.c
 SOURCES+=graphical.c
-SOURCES+=tldr.c
+SOURCES+=terminaldefense.c
 
 
 OBJECTS  := $(patsubst %.c,build/%.o,$(SOURCES))
 DEPFILES := $(patsubst %.o,%.d,$(OBJECTS))
 
-.PHONY: all debug help build_dir
+.PHONY: all debug help
 
 all: CFLAGS+=$(RELEASE_FLAGS)
 all: LDFLAGS+=-s $(RELEASE_FLAGS)
@@ -39,14 +39,14 @@ help:
 	@echo "    make help        Displays this help"
 
 tldr: $(OBJECTS)
-	$(CC) $^ $(LDFLAGS) -o tldr 
+	$(CC) $^ $(LDFLAGS) -o TerminalDefense
 
-build_dir:
+build:
 	@mkdir -p build
 		
-build/%.o: src/%.c Makefile build_dir
+build/%.o: src/%.c Makefile build
 	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 clean:
 	rm -rf build
-	rm tldr
+	rm TerminalDefense

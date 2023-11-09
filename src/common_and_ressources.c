@@ -2,7 +2,7 @@
 #include "common.h"
 
 //ressources
-#include "tldr.h"
+#include "terminaldefense.h"
 
 /****************************
  *** FONCTIONS UTILITAIRES ***
@@ -60,7 +60,7 @@ int32_t    max(int32_t a, int32_t b)
 
 
 //attend ms milliseconde
-int        tldr_wait(long    ms)
+int        td_wait(long    ms)
 {
     // Si le système cible est linux
     #if SYSTEM_POSIX
@@ -97,7 +97,7 @@ void    wait_for_next_frame(void)
             last_frame_time.tv_nsec -= 1000000000;
             last_frame_time.tv_sec  += 1;
         }
-        tldr_wait(FRAME_TIME - diff_in_ms);
+        td_wait(FRAME_TIME - diff_in_ms);
     }
 #elif SYSTEM_WINDOWS
 #error Clock not yet implemented on windows.
