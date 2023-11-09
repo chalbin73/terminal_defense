@@ -49,6 +49,13 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - le jeu se termine lorsque vous mourez (vie de la base a 0),
  que le jeu crash (ca n'arrive pas, normalement) ou que vous quittez le jeu avec le raccourcis clavier
 
+# Controles
+
+* zqsd : Deplacement du curseur
+* Maj maintenu : Deplacement du curseur 5x plus rapide
+* c : Ouverture du menu construction (navigation avec zsd, et validation avec c)
+* Maj+c construit la dernière défence construite
+
 ## Structure du projet
 
 * `Makefile` contient les commandes de compilation.

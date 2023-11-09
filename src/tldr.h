@@ -25,9 +25,9 @@
 // Represente une direction dans les jeu
 typedef enum
 {
-    DIR_RIGHT     = 0,
+    DIR_RIGHT  = 0,
     DIR_LEFT   = 1,
-    DIR_UP  = 2,
+    DIR_UP     = 2,
     DIR_DOWN   = 3,
     DIR_NOWHERE=4,//valeur spéciale, indiquant un manque d'information
 } DIRECTION;
@@ -51,7 +51,7 @@ typedef struct
     uint       speed;
     //damage/frame
     uint       damage;
-	uint       given_ressources;
+    uint       given_ressources;
 
 } monster_type_t;
 
@@ -75,7 +75,8 @@ typedef struct
     uint          max_life;
     uint          damage;
     uint          range;
-    const char   *ui_txt;
+    const char   *short_txt;
+    const char   *desc_txt;
 
 } defense_type_t;
 
@@ -90,7 +91,8 @@ typedef struct
 typedef struct defence_choice_tree_t
 {
     // Icone de la catégorie
-    const char                           *ui_txt;
+    const char                           *short_txt;
+    const char                           *desc_txt;
     pixel_t                               icon;
 
     // Sous catégories
@@ -252,13 +254,13 @@ void           damage_monster(monster_t **monster_ptr, int32_t damage);
 // @brief selectionne la défense
 void           select_defense(void);
 //contruit la dernière defense construite
-void fast_build(void);
+void           fast_build(void);
 // @brief construit une défense au niveau du curseur
 void           build_defense(const defense_type_t   *defense_type);
 // Affiche le menu de selection de defense
 void           display_selection(void);
 // affiche un item de la selection de défense
-void           display_defense_selection_item(pixel_t icon, uint32_t indice);
+void           display_defense_selection_item(pixel_t icon, const char *text, bool is_category, uint32_t indice);
 // Cache le menu de selection de defense
 void           hide_selection(void);
 // Augmente la selection de 1 (et update le selecteur graphique)
