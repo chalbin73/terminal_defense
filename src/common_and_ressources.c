@@ -159,7 +159,7 @@ const defense_type_t basic_wall =
         .c4               = '\0',
     },
     .desc_txt  = "Mur basique",
-    .short_txt = "Mur"
+    .short_txt = "Mur\nbasique"
 };
 const defense_type_t advanced_wall =
 {
@@ -194,8 +194,8 @@ const defense_type_t electric_wall =
         .c3               = '\xBF',
         .c4               = '\0',
     },
-    .desc_txt  = "Mur éléctrique: fait des dégats au monstres le touchant",
-    .short_txt = "Mur éléc."
+    .desc_txt  = "Mur éléctrique:\nfait des dégats au monstres le touchant",
+    .short_txt = "Mur\néléctrique"
 };
 const defense_type_t basic_turret =
 {
@@ -212,8 +212,8 @@ const defense_type_t basic_turret =
         .c3               = '\0',
         .c4               = '\0',
     },
-    .desc_txt  = "Tourelle de base",
-    .short_txt = "Tourelle"
+    .desc_txt  = "Tourelle\nde base",
+    .short_txt = "Tourelle\nbasique"
 };
 const defense_type_t long_range_turret =
 {
@@ -231,7 +231,7 @@ const defense_type_t long_range_turret =
         .c4               = '\0',
     },
     .desc_txt  = "Tourelle avancée tirant a grande distance",
-    .short_txt = "Tourelle distance"
+    .short_txt = "Tourelle\ndistance"
 };
 const defense_type_t heavy_turret =
 {
@@ -249,7 +249,7 @@ const defense_type_t heavy_turret =
         .c4               = '\0',
     },
     .desc_txt  = "Tourelle avancée infligeant de gros dégats",
-    .short_txt = "Tourelle puissante"
+    .short_txt = "Tourelle\npuissante"
 
 };
 const defense_type_t la_base =
@@ -412,8 +412,8 @@ const defence_choice_tree_t turrets =
         .color            = COL_TEXT,
         .background_color = COL_DEFAULT
     },
-    .short_txt        = "Tourelles",
-    .desc_txt        = "Tourelles, attaquent les monstres à distance",
+    .short_txt     = "Tourelles",
+    .desc_txt      = "Tourelles, attaquent les monstres à distance",
     .defense_count = 3,
     .defenses      = (const defense_type_t * [3] )
     {
@@ -439,8 +439,8 @@ const defence_choice_tree_t main_selection_tree =
         .color            = COL_TEXT,
         .background_color = COL_DEFAULT
     },
-    .short_txt               = "Menu de construction principal",
-    .desc_txt               = "Menu de construction principal",
+    .short_txt = "Menu de construction principal",
+    .desc_txt  = "Menu de construction principal",
 
     .defense_count = 0,
     .defenses      = NULL,
