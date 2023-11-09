@@ -442,7 +442,6 @@ int    main()
 
 
     //*initialise les variables globales*
-
     //creation du background
     //taille de l'arène
     arena_size.col    = termsize.col - reserved;
@@ -535,7 +534,7 @@ int    main()
 
     //on lance le jeu
     game_state = GAME_PLAYING;
-    turn       = 0;
+    turn       = 1;
     main_loop(8);
     EXIT_MSG = "You died!";
     return EXIT_SUCCESS;
