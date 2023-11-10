@@ -525,19 +525,28 @@ int    main()
     uint32_t half_width  = termsize.col / 2;
     uint32_t half_height = termsize.row / 2;
 
-    const char *title = "$ TERMINAL DEFENSE";
+    compose_disp_rect(
+        COL_GRAY_DARK,
+        COMPOSE_BACK,
+        (coordonee_t){ 0, 0 },
+        (coordonee_t){ termsize.col, termsize.row }
+        );
+
+    const char *title      = "$ TERMINAL DEFENSE";
+    const char *diff_label = "Chose difficulty ( with Z and S ) :";
+    char diff_label_num[100];
+
     compose_disp_text(
         title,
         COL_GREEN,
         COL_DEFAULT,
         COMPOSE_UI,
-        (coordonee_t){ half_width - strlen(title) / 2, half_height },
+        (coordonee_t){ half_width - strlen(title) / 2, half_height - 5 },
         (coordonee_t){ .x = strlen(title), .y = 1 }
         );
     char input;
     bool show_menu = true;
 
-    compose_disp_rect(COL_GRAY_DARK, COMPOSE_BACK, (coordonee_t){0}, (coordonee_t){termsize.row, termsize.col});
 
     while(show_menu)
     {
@@ -548,6 +557,14 @@ int    main()
                 show_menu = false;
             }
         }
+        compose_disp_text(
+            "Chose difficulty ( with Z and S ) : ",
+            COL_TEXT,
+            COL_DEFAULT,
+            COMPOSE_UI,
+            (coordonee_t){ half_width - strlen(title) / 2, half_height - 3 },
+            (coordonee_t){ .x = strlen(title), .y = 1 }
+            );
         compose_refresh();
     }
     //*initialise les variables globales*

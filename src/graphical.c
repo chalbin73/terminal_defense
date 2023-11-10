@@ -356,34 +356,23 @@ void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coord
 {
     pixel_t pix_color =
     {
-        .color = color,
+        .color = COL_DEFAULT,
+        .background_color = color,
         .c1    = ' ',
         .c2    = '\0',
     };
 
     for (int i = 0; i<size.y; i++)
     {
-        //on copie l'image a l'aide de memcpy (copie par ligne entière)
-        //dans la mémoire du compositeur
-
-        /*
-           memcpy(
-            &compositor_pixels[pos.x + (i + pos.y) * termsize.stride + rank * compositor_stride], //destination
-            &pict.data[i * pict.size.stride],                                                //source
-            sizeof(pixel_t) * pict.size.col
-            );                                                                               //nombre d'octets a copier
-                                                                                             //
-         */
         for(int j = 0; j < size.x; j++)
         {
-            compositor_pixels[pos.x + (i + pos.y) * termsize.stride + rank * compositor_stride + j] = pix_color;
-        }
-
-        //puis on calcule les changements éventuels
-        for (int j = pos.x; j<pos.x + size.x; j++)
-        {
-            compose_have_changed(
-                (coordonee_t){ j, i + pos.y }
+            compose_disp_pix(
+                pix_color,
+                rank,
+                (coordonee_t){
+                    .x = j + pos.x,
+                    .y = i + pos.y
+                }
                 );
         }
     }
@@ -412,6 +401,7 @@ void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos)
         }
     }
 }
+
 void    compose_disp_text(const char *text_to_display, COLOR text_color, COLOR background_color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size_of_text_box)
 {
     //getting location
@@ -429,6 +419,7 @@ void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos)
     compositor_pixels[pos.x + pos.y * termsize.stride + rank * compositor_stride] = pixel;
     compose_have_changed(pos);
 }
+
 //calcule les changements a la position demandée
 void    compose_have_changed(coordonee_t    pos)
 {
