@@ -307,7 +307,7 @@ void    txt_to_img(picture_t result, const char *text_to_display, COLOR text_col
         .color            = text_color
     };
     coordonee_t pos;
-    int32_t counter=0;
+    int32_t counter = 0;
     for (pos.y = 0; pos.y < result.size.row; pos.y++)
     {
         for (pos.x = 0; pos.x < result.size.col; pos.x++)
@@ -351,6 +351,44 @@ void    compose_free(void)
     free(compositor_pixels);
     compositor_stride = 0;
 }
+
+void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size)
+{
+    pixel_t pix_color =
+    {
+        .color = color,
+        .c1    = ' ',
+        .c2    = '\0',
+    };
+
+    for (int i = 0; i<size.y; i++)
+    {
+        //on copie l'image a l'aide de memcpy (copie par ligne entière)
+        //dans la mémoire du compositeur
+
+        /*
+           memcpy(
+            &compositor_pixels[pos.x + (i + pos.y) * termsize.stride + rank * compositor_stride], //destination
+            &pict.data[i * pict.size.stride],                                                //source
+            sizeof(pixel_t) * pict.size.col
+            );                                                                               //nombre d'octets a copier
+                                                                                             //
+         */
+        for(int j = 0; j < size.x; j++)
+        {
+            compositor_pixels[pos.x + (i + pos.y) * termsize.stride + rank * compositor_stride + j] = pix_color;
+        }
+
+        //puis on calcule les changements éventuels
+        for (int j = pos.x; j<pos.x + size.x; j++)
+        {
+            compose_have_changed(
+                (coordonee_t){ j, i + pos.y }
+                );
+        }
+    }
+}
+
 //donne une image au compositeur
 void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos)
 {
