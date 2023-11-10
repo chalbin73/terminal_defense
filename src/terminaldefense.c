@@ -698,8 +698,8 @@ void    display_defense_selection_item(pixel_t icon, const char *text, bool is_c
         is_category ? COL_GREEN : COL_BLUE,
         COL_DEFAULT,
         COMPOSE_UI,
-        (coordonee_t){ posx + 3, posy + 1 },
-        (coordonee_t){ reserved - 5, 3 }
+        (coordonee_t){ posx + 3, posy },
+        (coordonee_t){ reserved - 6, 3 }
         );
 }
 
