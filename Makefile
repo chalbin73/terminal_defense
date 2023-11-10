@@ -39,7 +39,7 @@ help:
 	@echo "    make help        Displays this help"
 
 tldr: $(OBJECTS)
-	$(CC) $^ $(LDFLAGS) -o TerminalDefense
+	$(CC) $^ $(LDFLAGS) -o terminal_defense
 
 build:
 	@mkdir -p build
@@ -49,4 +49,4 @@ build/%.o: src/%.c Makefile build
 
 clean:
 	rm -rf build
-	rm TerminalDefense
+	rm terminal_defense

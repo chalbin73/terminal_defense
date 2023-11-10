@@ -182,7 +182,7 @@ const defense_type_t advanced_wall =
 const defense_type_t electric_wall =
 {
 	.max_life = 1500,
-	.damage   = 50,
+	.damage   = 45,
 	.cost     = 750,
 	.range    = 1,
 	.sprite   =
@@ -218,7 +218,7 @@ const defense_type_t basic_turret =
 const defense_type_t medium_turret =
 {
 	.max_life = 50,
-	.damage   = 20,
+	.damage   = 25,
 	.range    = 7,
 	.cost     = 500,
 	.sprite   =
@@ -238,7 +238,7 @@ const defense_type_t long_range_turret =
 	.max_life = 50,
 	.damage   = 25,
 	.range    = 14,
-	.cost     = 1000,
+	.cost     = 750,
 	.sprite   =
 	{
 		.color            = COL_WHITE,
@@ -256,7 +256,7 @@ const defense_type_t heavy_turret =
 	.max_life = 50,
 	.damage   = 60,
 	.range    = 7,
-	.cost     = 1500,
+	.cost     = 1250,
 	.sprite   =
 	{
 		.color            = COL_BLUE,

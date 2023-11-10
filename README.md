@@ -21,7 +21,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Téléchargez touts les fichier du projet
  - dézipez l'archive des sources (en terminal: `unzip src.zip`)
  - si vous le souhaitez, modifiez les raccourcis claviers dans le fichier `src/config.h`
- - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `TerminalDefense` (lancable avec `./TerminalDefense`)
+ - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `terminal_defense` (lancable avec `./terminal_defense`)
 ### Windows
  Voici les différente possibilité, du plus facile au plus compliqué
  - utilisez la version ssh (pour tester les warnigns de compilation, vous pouvez aller sur caséine, mais lancer le programme desus est déconséillé)
@@ -42,7 +42,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
     - la touche pause (par défault p)
     - quiter le jeu (par défault `Ctrl+c`)
 3) Lancez le jeu
- - si vous avez compilé, l'executable se nomme TerminalDefense et peut se lancer avec la commande `./TerminalDefense` dans le dossier du jeu
+ - si vous avez compilé, l'executable se nomme terminal_defense et peut se lancer avec la commande `./terminal_defense` dans le dossier du jeu
  - si vous utilisez la version ssh, relancer simplement la commande ssh ( ` ssh -4Cp 389 insecure@mwaaa.fr ` )
 4) Survivez!
  - Les monstres (les flèches a gauche de l'écran) tentent d'atteindre et de détruire vôtre base (a droite de l'écran)
