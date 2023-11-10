@@ -201,7 +201,7 @@ const defense_type_t basic_turret =
 {
 	.max_life = 50,
 	.damage   = 15,
-	.range    = 4,
+	.range    = 5,
 	.cost     = 200,
 	.sprite   =
 	{
@@ -254,7 +254,7 @@ const defense_type_t long_range_turret =
 const defense_type_t heavy_turret =
 {
 	.max_life = 50,
-	.damage   = 50,
+	.damage   = 60,
 	.range    = 7,
 	.cost     = 1500,
 	.sprite   =
@@ -432,7 +432,7 @@ const defence_choice_tree_t turrets =
 	},
 	.short_txt     = "Tourelles",
 	.desc_txt      = "Tourelles, attaquent les monstres à distance",
-	.defense_count = 3,
+	.defense_count = 4,
 	.defenses      = (const defense_type_t * [4] )
 	{
 		[0] = &heavy_turret,

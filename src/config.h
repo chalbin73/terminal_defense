@@ -28,8 +28,8 @@ typedef enum COLOR {
 	COL_CYAN      =6,
 	COL_WHITE     =7,
 	COL_GRAY_DARK =233,
-	COL_GRAY      =241,
-	COL_GRAY_LIGHT=247,
+	COL_GRAY      =237,
+	COL_GRAY_LIGHT=240,
 
 	//* Couleurs modifiables *
 	COL_CURSOR = COL_GREEN,                  //couleur du curseur

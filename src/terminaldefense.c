@@ -215,19 +215,20 @@ void    clear_input(void)
 /*** CURSOR ***/
 void display_range_overlay(void){
 	//affiche la range des tourelles
+	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
 	const defense_type_t *type=defense_array[offset_of(cursor_pos, arena_size.stride)].type;
 	if (type!=NULL) {
-		int	range=type->range;
+		int range=type->range;
 		if (range>0) {
 			pixel_t pixel=(pixel_t){.c1=' ',.c2='\0',
 				                    .color=COL_DEFAULT,
-				                    .background_color=COL_CURSOR,};
+				                    .background_color=COL_GRAY,};
 			coordonee_t position;
 			position.y=cursor_pos.y-range;
 			//ligne supérieure
 			if (position.y>=0) {
 				for (position.x=cursor_pos.x-range ; position.x<=cursor_pos.x+range; position.x+=1) {
-					if (0>=position.x && position.x<arena_size.col) {
+					if (0<=position.x && position.x<arena_size.col) {
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
@@ -236,7 +237,7 @@ void display_range_overlay(void){
 			position.y=cursor_pos.y+range;
 			if (position.y<arena_size.row) {
 				for (position.x=cursor_pos.x-range ; position.x<=cursor_pos.x+range; position.x+=1) {
-					if (0>=position.x && position.x<arena_size.col) {
+					if (0<=position.x && position.x<arena_size.col) {
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
@@ -245,7 +246,7 @@ void display_range_overlay(void){
 			position.x=cursor_pos.x-range;
 			if (position.x>=0) {
 				for (position.y=cursor_pos.y-range ; position.y<=cursor_pos.y+range; position.y+=1) {
-					if (0>=position.y && position.y<arena_size.row) {
+					if (0<=position.y && position.y<arena_size.row) {
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
@@ -254,7 +255,7 @@ void display_range_overlay(void){
 			position.x=cursor_pos.x+range;
 			if (position.x<arena_size.col) {
 				for (position.y=cursor_pos.y-range ; position.y<=cursor_pos.y+range; position.y+=1) {
-					if (0>=position.y && position.y<arena_size.row) {
+					if (0<=position.y && position.y<arena_size.row) {
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
@@ -266,13 +267,11 @@ void    show_cursor(void)
 {
 	compose_disp_pix(cursor_pixel, COMPOSE_UI, cursor_pos);
 	cursor_is_shown = true;
-	display_range_overlay();
 }
 void    hide_cursor(void)
 {
 	compose_del_pix(COMPOSE_UI, cursor_pos);
 	cursor_is_shown = false;
-	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
 }
 void    blink_cursor(void)
 {
@@ -304,7 +303,7 @@ void    move_cursor(DIRECTION dir, bool fast)
 		cursor_pos = new_pos;
 	}
 	show_cursor();
-	
+	display_range_overlay();
 }
 /*** PATHFINDER ***/
 // (re) initilaise le pathfinder array
@@ -695,6 +694,7 @@ void    build_defense(const defense_type_t   *defense_type)
 	};
 	compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, cursor_pos);
 	update_pathfinder_from(cursor_pos);
+    display_range_overlay();
 }
 
 void    select_defense(void)
