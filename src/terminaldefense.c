@@ -694,7 +694,7 @@ void    build_defense(const defense_type_t   *defense_type)
 	};
 	compose_disp_pix(defense_type->sprite, COMPOSE_ARENA, cursor_pos);
 	update_pathfinder_from(cursor_pos);
-    display_range_overlay();
+	display_range_overlay();
 }
 
 void    select_defense(void)
@@ -1051,7 +1051,7 @@ void    right_column_refresh(void)
 	compose_del_area(
 		COMPOSE_ARENA,
 		position,
-		(coordonee_t){ .x = termsize.col - 1, .y = termsize.row - 1 }
+		(coordonee_t){ .x = termsize.col -1, .y = termsize.row - 1 }
 		);
 	char text[50];
 	//PRId64 est une macro pour print les int64_t (ld ou lld selon les systèmes)
@@ -1088,6 +1088,15 @@ void    right_column_refresh(void)
 				position,
 				box_size
 				);
+		//ainsi que les contrôles clavier (si on a la place)
+			position.y+=3;
+		sprintf(text, "%c :annuler\n"
+		        "%c/%c :valider",KEY_LEFT,KEY_RIGHT,KEY_BUILD);
+		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		position.y += 2;
+		sprintf(text, "%c/%c:selection", KEY_UP,KEY_DOWN);
+		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+
 		}
 		else
 		{
@@ -1113,7 +1122,7 @@ void    right_column_refresh(void)
 				box_size
 				);
 		}
-	}
+			}
 	else
 	{
 		//sinon, on affiche les détails de la défense sous le curseur
@@ -1136,6 +1145,17 @@ void    right_column_refresh(void)
 		{
 			compose_disp_text("no defense under cursor", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 		}
+		//ainsi que les contrôles claviers
+		position.y+=4;
+		sprintf(text, " %c   :déplacer\n"
+		        "%c%c%c  le curseur",KEY_UP,KEY_LEFT,KEY_DOWN,KEY_RIGHT);
+		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		position.y += 2;
+		sprintf(text, "%c :Pause",KEY_PAUSE);
+		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+		position.y+=1;
+		sprintf(text, "%c :Construire",KEY_BUILD);
+		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 	}
 }
 void    toogle_pause(void)
