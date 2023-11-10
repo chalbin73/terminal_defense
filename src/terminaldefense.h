@@ -74,7 +74,7 @@ typedef struct
     uint          cost;
     uint          max_life;
     uint          damage;
-    uint          range;
+    int          range;
     const char   *short_txt;
     const char   *desc_txt;
 
@@ -197,7 +197,8 @@ void           clear_input(void);
 
 // @brief bouge le curseur dans la direction demandée
 void           move_cursor(DIRECTION dir, bool fast);
-
+// @brief affiche l'overlay de range
+void display_range_overlay(void);
 //update l'affichage de la colonne de status (droite de l'écran)
 void           right_column_refresh(void);
 
