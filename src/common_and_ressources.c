@@ -194,7 +194,7 @@ const defense_type_t electric_wall =
 		.c3               = '\xBF',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Mur éléctrique:\nfait des dégats au contact",
+	.desc_txt  = "Mur éléctrique:\nfait des dégats\nau contact",
 	.short_txt = "Mur\néléctrique"
 };
 const defense_type_t basic_turret =
@@ -230,7 +230,7 @@ const defense_type_t medium_turret =
 		.c3               = '\0',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Tourelle legerement plus puissante",
+	.desc_txt  = "Tourelle un peu +\npuissante",
 	.short_txt = "Tourelle\nmoyenne"
 };
 const defense_type_t long_range_turret =
@@ -248,7 +248,7 @@ const defense_type_t long_range_turret =
 		.c3               = '\0',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Tourelle avancée\tgrande portée",
+	.desc_txt  = "Tourelle avancée\ngrande portée",
 	.short_txt = "Tourelle\ndistance"
 };
 const defense_type_t heavy_turret =
@@ -285,7 +285,7 @@ const defense_type_t la_base =
 		.c3               = '\x91',
 		.c4               = 0,
 	},
-	.desc_txt  = "Vôtre base, defendez là!",
+	.desc_txt  = "Votre base,\ndefendez là!",
 	.short_txt = "Base!"
 };
 
@@ -405,7 +405,7 @@ const defence_choice_tree_t walls =
 		.background_color = COL_DEFAULT
 	},
 	.short_txt     = "Murs",
-	.desc_txt      = "Murs, bloquent le passage des monstres",
+	.desc_txt      = "Murs, bloquent\nle passage\ndes monstres",
 	.defense_count = 3,
 	.defenses      = (const defense_type_t * [3] )
 	{
@@ -431,7 +431,7 @@ const defence_choice_tree_t turrets =
 		.background_color = COL_DEFAULT
 	},
 	.short_txt     = "Tourelles",
-	.desc_txt      = "Tourelles, attaquent les monstres à distance",
+	.desc_txt      = "Tourelles,\nattaquent les\nà distance",
 	.defense_count = 4,
 	.defenses      = (const defense_type_t * [4] )
 	{
@@ -459,7 +459,7 @@ const defence_choice_tree_t main_selection_tree =
 		.background_color = COL_DEFAULT
 	},
 	.short_txt = "Retour",
-	.desc_txt  = "Menu de construction principal",
+	.desc_txt  = "Menu de\nconstruction\nprincipal",
 
 	.defense_count = 0,
 	.defenses      = NULL,
