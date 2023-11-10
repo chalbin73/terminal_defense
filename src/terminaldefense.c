@@ -287,16 +287,16 @@ void    blink_cursor(void)
 
 void    move_cursor(DIRECTION dir, bool fast)
 {
-	hide_cursor();
-	coordonee_t new_pos = neighbor_of(cursor_pos, dir);
-	if(fast)
+if(fast)
 	{
 		// Si on veut bouger vite, on bouge 5 fois vers dir
-		new_pos = neighbor_of(new_pos, dir);
-		new_pos = neighbor_of(new_pos, dir);
-		new_pos = neighbor_of(new_pos, dir);
-		new_pos = neighbor_of(new_pos, dir);
+		for (int i=0; i<4; i++) {
+			move_cursor(dir, false);
+		}
 	}
+	hide_cursor();
+	coordonee_t new_pos = neighbor_of(cursor_pos, dir);
+	
 	//on ne peut intentionelement pas séléctionner la première ligne, pour que les mobs puisse spawn
 	if (new_pos.x>0)
 	{
@@ -473,7 +473,81 @@ void    sig_handler(int _)
 	signal(SIGTERM, SIG_DFL);
 	exit(1);
 }
+void reinit_game(void){
+	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
+	//reinit les defenses
+	memset(defense_array, 0, sizeof(defense_t)*arena_size.row*arena_size.col);
+	//reinit l'affichage
+	compose_del_area(COMPOSE_UI, (coordonee_t){0,0}, (coordonee_t){termsize.col-1,termsize.row-1});
+	compose_del_area(COMPOSE_ARENA, (coordonee_t){0,0}, (coordonee_t){termsize.col-1,termsize.row-1});
+	//reinit les mobs
+	monster_pool_create(200);	
 
+	joueur_ressources     = 3000;
+	joueur_score          = 0;
+
+	cursor_pos = base_coordinate;
+	path_reinit();
+	build_defense(&la_base);
+	derniere_construction = NULL;
+
+	game_state = GAME_PLAYING;
+	turn       = 1;
+
+
+}
+
+void main_menu(void){
+	while (true) {
+		reinit_game();
+		compose_disp_text("Bienvenue sur Terminal Defense!\n\n"
+		                  "Entrez un chiffre pour lancer le jeu avec la difficulte correspondante\n"
+		                  "(1: Tres facile,8+: Difficile 0=10: Tres difficile\n\n"
+						  , COL_TEXT, COL_DEFAULT, COMPOSE_UI,
+		                  (coordonee_t){0,termsize.row/2-2}, (coordonee_t){termsize.col-1,termsize.row/2-1});
+		int difficulty=-1;
+		compose_refresh();
+		while (difficulty==-1) {
+			char input;
+			while ( read(STDIN_FILENO, &input, 1)==0 ) // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+			{
+				td_wait(100);
+			}
+			if (input==KEY_QUIT) {
+				EXIT_MSG="Quiting!";
+				exit(0);
+			}
+			if ('0'<=input&&input<='9') { //on a appuyé sur un chiffre
+				difficulty=(int)(input-'0'); //obtient le chiffre en question
+				if (difficulty==0) {
+					difficulty=10;
+				}
+			}
+		}//fin du while difficulty==0
+		//on cache le texte de bienvenue
+		compose_del_area(COMPOSE_UI, (coordonee_t){0,termsize.row/2-2},(coordonee_t){termsize.col-1,termsize.row-1});
+		//on commence avec plus de ressources quand c'est facile:
+		joueur_ressources+=3000/difficulty;
+		//on lance le jeu
+		main_loop(difficulty);
+		//vous êtes mort!
+		compose_disp_text(
+				"Vous etes mort!\n"
+				"r: recommencer\n"
+				"q: quitter",
+				COL_RED, COL_BLACK, COMPOSE_UI, (coordonee_t){arena_size.col/2-10,arena_size.row-1}, (coordonee_t){20,3});
+		compose_refresh();
+		char input='\0';
+		while (input!='r') {
+			if (input=='q') {
+				return;
+			}
+			td_wait(100);
+			if(read(STDIN_FILENO, &input, 1)==0) // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+				input='\0';
+		}
+	}
+}
 int    main()
 {
 	//si jamais ...
@@ -548,7 +622,6 @@ int    main()
 	}
 
 
-	monster_pool_create(200);
 	//creation (et initialisation a zero) de monster_position
 	monster_positions = safe_malloc(sizeof(monster_t *) * arena_size.row * arena_size.col);
 	memset(monster_positions, (long int)NULL, sizeof(monster_t *) * arena_size.row * arena_size.col);
@@ -563,13 +636,7 @@ int    main()
 		.y = arena_size.row / 2,
 	};
 
-	joueur_ressources     = 3000;
-	joueur_score          = 0;
-	derniere_construction = NULL;
 
-	cursor_pos = base_coordinate;
-	path_reinit();
-	build_defense(&la_base);
 	//vie du joueur == vie de la base
 	joueur_vie = &(defense_array[offset_of(base_coordinate, arena_size.stride)].life);
 
@@ -583,11 +650,8 @@ int    main()
 
 	EXIT_MSG = "Crashing whithout more precision while game was running";
 
-	//on lance le jeu
-	game_state = GAME_PLAYING;
-	turn       = 1;
-	main_loop(8);
-	EXIT_MSG = "You died!";
+	main_menu();
+	EXIT_MSG = "Quited!";
 	return EXIT_SUCCESS;
 }
 
@@ -1088,26 +1152,26 @@ void    right_column_refresh(void)
 				position,
 				box_size
 				);
-		//ainsi que les contrôles clavier (si on a la place)
+			//ainsi que les contrôles clavier (si on a la place)
 			position.y+=3;
-		sprintf(text, "%c :annuler\n"
-		        "%c/%c :valider",KEY_LEFT,KEY_RIGHT,KEY_BUILD);
-		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
-		position.y += 2;
-		sprintf(text, "%c/%c:selection", KEY_UP,KEY_DOWN);
-		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+			sprintf(text, "%c :annuler\n"
+			        "%c/%c :valider",KEY_LEFT,KEY_RIGHT,KEY_BUILD);
+			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+			position.y += 2;
+			sprintf(text, "%c/%c:selection", KEY_UP,KEY_DOWN);
+			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
 		}
 		else
 		{
 			defense_type_t selected_def_type = *shown_tree->defenses[sel_index - shown_tree->sub_category_count];
-			sprintf(text, "coût: %u", selected_def_type.cost);
+			sprintf(text, "cout: %u", selected_def_type.cost);
 			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 			position.y += 1;
-			sprintf(text, "portée: %u", selected_def_type.range);
+			sprintf(text, "portee: %u", selected_def_type.range);
 			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 			position.y += 1;
-			sprintf(text, "dégats: %u", selected_def_type.damage);
+			sprintf(text, "degats: %u", selected_def_type.damage);
 			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 			position.y += 1;
 			sprintf(text, "vie: %u", selected_def_type.max_life);
@@ -1122,7 +1186,7 @@ void    right_column_refresh(void)
 				box_size
 				);
 		}
-			}
+	}
 	else
 	{
 		//sinon, on affiche les détails de la défense sous le curseur
@@ -1147,8 +1211,8 @@ void    right_column_refresh(void)
 		}
 		//ainsi que les contrôles claviers
 		position.y+=4;
-		sprintf(text, " %c   :déplacer\n"
-		        "%c%c%c  le curseur",KEY_UP,KEY_LEFT,KEY_DOWN,KEY_RIGHT);
+		sprintf(text, " %c   :deplacer\n"
+		        "%c%c%c   le curseur",KEY_UP,KEY_LEFT,KEY_DOWN,KEY_RIGHT);
 		compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 		position.y += 2;
 		sprintf(text, "%c :Pause",KEY_PAUSE);
@@ -1230,13 +1294,9 @@ void    monster_pool_expand(uint32_t expand_size)
 // Creates and initialized the pool of all monsters
 void    monster_pool_create(uint32_t pool_size)
 {
+	//free une eventuelle mémoire précédente
+	monster_pool_destroy();
 	// Allocate the memory to store the monsters
-	monster_memories       = NULL;
-	monster_pool_head      = NULL;
-	max_monsters           = 0;
-	alloced_monsters       = 0;
-	monster_memories_count = 0;
-
 	monster_pool_expand(pool_size);
 }
 

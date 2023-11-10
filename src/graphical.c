@@ -45,7 +45,7 @@ void    init_graphical(void)
     //mets en place le buffering
     setvbuf(stdout, stdout_buffer, _IOFBF, 100);
     //maximise le terminal et cache le curseur
-    printf("%s", "\33[?25l \33[8;99999;99999t");
+    printf("%s", "\33[?25l");
     //obtention de la taille de l'écran
     struct winsize raw_termsize;
     ioctl(0, TIOCGWINSZ, &raw_termsize);
@@ -143,11 +143,11 @@ void    init_graphical(void)
 bool    pix_equal(pixel_t pix1, pixel_t pix2)
 {
     //compare les charactères
-    if (pix1.c1!=pix2.c2)
+    if (pix1.c1!=pix2.c1)
         return false;                   //pixels différents
     if (pix1.c1=='\0')
         return true;                //pixels transparents: on ne check pas la couleure
-    if (pix1.c2!=pix2.c3)
+    if (pix1.c2!=pix2.c2)
         return false;                   //on check le 2 ème char
     if (pix1.c2!='\0')  //si plus d'un char est utilisés (UTF-8 sur 2-4 char)
     {
@@ -160,12 +160,16 @@ bool    pix_equal(pixel_t pix1, pixel_t pix2)
         }
     }
     //si les char sont égaux, on check les couleurs
-    if (pix1.color!=pix2.color || pix1.background_color!=pix2.background_color)
+    if (pix1.color==pix2.color && pix1.background_color==pix2.background_color)
     {
-        return false;
+        return true;
     }
+	//si c'est un espace, on ne check que le background color
+	if (pix1.c1==' ' && pix1.background_color==pix2.background_color) {
+		return true;
+	}
     //touts les test sont passés: les 2 pixels sont égaux
-    return true;
+    return false;
 }
 
 picture_t    pict_crop_bound(picture_t pict, coordonee_t min, coordonee_t max)
@@ -383,7 +387,12 @@ void    compose_disp_text(const char *text_to_display, COLOR text_color, COLOR b
     };
     text_image = pict_crop_size(text_image, pos, size_of_text_box);
     txt_to_img(text_image, text_to_display, text_color, background_color);
-    compose_disp_pict(text_image, rank, pos);
+
+    for (int y=0; y<size_of_text_box.y; y++) {
+		for (int x=0; x<size_of_text_box.x; x++) {
+			compose_have_changed((coordonee_t){pos.x+x,pos.y+y});
+		}
+    }
 }
 //donne un seul pixel au compositeur
 void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos)

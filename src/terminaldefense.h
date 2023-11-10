@@ -218,6 +218,10 @@ void           update_pathfinder_from(coordonee_t    position);
 
 // @brief setup initial
 int            main(void);
+// @brief menu principal
+void    main_menu(void);
+// @brief clear tout et remet en place pour une nouvelle partie
+void reinit_game(void);
 //
 // @brief Pour chaque input clavier depuis la dernière frame, execute l'action associé
 void           treat_input(void);
