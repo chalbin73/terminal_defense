@@ -1,5 +1,5 @@
 build/
 *.o
-tldr
+TerminalDefense
 compile_commands.json
 .cache/
