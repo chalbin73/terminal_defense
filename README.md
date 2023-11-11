@@ -20,8 +20,8 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  _(normalement, mac est supporté, mais non tésté)_
  - Installez `make` et un compilateur C (par ex `gcc`)
     Ceux ci sont généralement disponible dans le paquet `base-devel`
- - Téléchargez touts les fichier du projet
- - dézipez l'archive des sources (en terminal: `unzip src.zip`)
+ - Téléchargez touts les fichier du projet (`git clone https://github.com/chalbin73/terminal_defense`)
+ - allez dans le répertoire du projet (`cd terminal_defense`)
  - si vous le souhaitez, modifiez les raccourcis claviers dans le fichier `src/config.h`
  - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `terminal_defense` (lancable avec `./terminal_defense`)
 
@@ -102,3 +102,26 @@ Le code compile et se lance, cepandant
 * `graphical.h` `graphical.c` Contient le code relatif au rendu "graphique" dans le terminal
 * `common.h` `common_and_ressources.c` Contient des utilitaires communs à tout le projet, plus les ressources du projet
 * `config.h` Contient la configuration du jeu, ce fichier est fait pour être modifié par les utilisateurs
+
+# Licence
+Ce projet et licencié avec la licence MIT:
+
+
+
+Copyright 2023 maddcoder <mwa@mwaaa.fr> albin CHABOISSIER
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the “Software”), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
