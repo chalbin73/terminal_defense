@@ -14,6 +14,7 @@ il est possbile de tester le jeu sans l'installer a l'aide de ssh (demande une c
    - Port: 389
 NB: Il n'est pas possible de cette manière de modifier les raccourcis claviers
 NB: Cette solution est mise a disposition car le programme fonctionne très mal sur caséine (lag + timeout + mauvais rendu)
+
 ### Linux/unix
  _(normalement, mac est supporté, mais non tésté)_
  - Installez `make` et un compilateur C (par ex `gcc`)
@@ -22,11 +23,13 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - dézipez l'archive des sources (en terminal: `unzip src.zip`)
  - si vous le souhaitez, modifiez les raccourcis claviers dans le fichier `src/config.h`
  - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `terminal_defense` (lancable avec `./terminal_defense`)
+
 ### Windows
  Voici les différente possibilité, du plus facile au plus compliqué
  - utilisez la version ssh (pour tester les warnigns de compilation, vous pouvez aller sur caséine, mais lancer le programme desus est déconséillé)
  - vous avez déja wsl/une vm linux: suivez les instruction de build linux en l'utilisant
  - installez make et gcc sur windows a l'aide de cygiwin ou autre équivalent, puis suivez les instruction de build linux (peut ne pas fonctionner)
+ /!\ Le fonctionnement n'a jamais été testé sur Windows, il n'est pas garanti
 
 ## Tester le programme
 
