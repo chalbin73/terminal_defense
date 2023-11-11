@@ -125,7 +125,7 @@ typedef struct
 
 /*
  *
- * Syntax doxygen
+ * Syntaxe doxygen
  *
  * Ces fonctions sont documentées en utilisant la syntaxe doxygen:
  *
@@ -176,7 +176,7 @@ void           print_monster_at(coordonee_t    pos);
  * @param type type de monstre a faire apparaitre
  * @param position endroit ou il faut faire apparaitre le monstre
  */
-void           spawn_monster(const monster_type_t *type, coordonee_t position);
+void           spawn_monster(const monster_type_t *type, coordonee_t position, int difficulty);
 
 /* @brief finalise la mort d'un monstre (le free et le sort de monster_position)
  *
@@ -232,7 +232,9 @@ void    menu_loop(void);
 uint32_t    game_menu(void);
 // @brief clear tout et remet en place pour une nouvelle partie
 void reinit_game(void);
-//
+//reinitialisations touchant au graphisme (doit etre fait après le menu)
+void post_reinit_game(void);
+
 // @brief Pour chaque input clavier depuis la dernière frame, execute l'action associé
 void           treat_input(void);
 

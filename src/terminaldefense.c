@@ -165,13 +165,13 @@ void    print_monster(const monster_t *monster, coordonee_t pos)
 }
 
 //fais spawn un monstre
-void    spawn_monster(const monster_type_t *type, coordonee_t position)
+void    spawn_monster(const monster_type_t *type, coordonee_t position, int difficulty)
 {
 	monster_t *monster = monster_pool_alloc();
 	*monster = (monster_t)
 	{
 		.type                 = type,
-		.vie                  = type->base_life * (3 + turn / 110),
+		.vie                  = type->base_life * (1 +difficulty/4 + turn * difficulty / 900),
 		.last_action_turn     = turn,
 		.next_monster_in_room = monster_positions[offset_of(position, arena_size.stride)],
 	};
@@ -634,10 +634,10 @@ void    sig_handler(int _)
 	exit(1);
 }
 void reinit_game(void){
-	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
+
 	//reinit les defenses
 	memset(defense_array, 0, sizeof(defense_t)*arena_size.row*arena_size.col);
-	//position des mobs
+	//la position des mobs
 	memset(monster_positions, (long int)NULL, sizeof(monster_t *) * arena_size.row * arena_size.col);
 
 	//reinit l'affichage
@@ -657,14 +657,53 @@ void reinit_game(void){
 	turn       = 1;
 
 }
+void post_reinit_game(void){
+	//reinitialisations touchant au graphisme
+	//doit donc être éfféctué après le choix de difficulté
 
+	build_defense(&la_base);
+	derniere_construction = NULL;
+	//reinit graphiques
+	pixel_t pixel = (pixel_t)
+	{
+		.c1    = ' ',            //le caractères étant un simple ascii (un espace),
+		.c2    = '\0',           //il ne prend que c1, les autres sont donc nulls
+		.color = COL_DEFAULT,
+	};
+	//background de l'arène
+	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
+	//backgound de la colonne de droite
+	pixel.background_color = COL_WHITE;
+	for (int j = 0; j<termsize.row; j++)
+	{
+		compose_disp_pix(
+			pixel,
+			COMPOSE_BACK,
+			(coordonee_t){ arena_size.col, j }
+			);
+	}
+	pixel.background_color = COL_BLACK;
+	for (int i = arena_size.col + 1; i<termsize.col; i++)
+	{
+		for (int j = 0; j<termsize.row; j++)
+		{
+			compose_disp_pix(
+				pixel,
+				COMPOSE_BACK,
+				(coordonee_t){ i, j }
+				);
+		}
+	}
+
+
+}
 void menu_loop(void){
 	while (true) {
 		reinit_game();
-		//on commence avec plus de ressources quand c'est facile:
 		int difficulty=game_menu();
-	build_defense(&la_base);
-	derniere_construction = NULL;
+		post_reinit_game();
+
+		//on commence avec plus de ressources quand c'est facile:
 		joueur_ressources+=3000/difficulty;
 		//on lance le jeu
 		main_loop(difficulty);
@@ -739,30 +778,6 @@ int    main()
 			background.data[i + j * background.size.stride] = pixel;
 		}
 	}
-
-	//initialisation de la colonne de droite
-	pixel.background_color = COL_WHITE;
-	for (int j = 0; j<termsize.row; j++)
-	{
-		compose_disp_pix(
-			pixel,
-			COMPOSE_BACK,
-			(coordonee_t){ arena_size.col, j }
-			);
-	}
-	pixel.background_color = COL_BLACK;
-	for (int i = arena_size.col + 1; i<termsize.col; i++)
-	{
-		for (int j = 0; j<termsize.row; j++)
-		{
-			compose_disp_pix(
-				pixel,
-				COMPOSE_BACK,
-				(coordonee_t){ i, j }
-				);
-		}
-	}
-
 
 	monster_pool_create(200);
 	//creation (et initialisation a zero) de monster_position
@@ -889,7 +904,7 @@ void    fast_build(void)
 //construit une defense a la position du curseur
 void    build_defense(const defense_type_t   *defense_type)
 {
-	    derniere_construction = defense_type;
+	derniere_construction = defense_type;
 	if (joueur_ressources<defense_type->cost)
 	{
 		//not enough resources
@@ -1168,7 +1183,7 @@ void    randomly_spawn_mobs(int difficulty)
 					type = &armored;
 				}
 			}
-			spawn_monster(type, spawn_location);
+			spawn_monster(type, spawn_location, difficulty);
 		}
 	}
 }
@@ -1249,7 +1264,7 @@ void    damage_monster(monster_t **monster_ptr, int32_t damage)
 
 void    right_column_refresh(void)
 {
-		coordonee_t box_size =
+	coordonee_t box_size =
 	{
 		.x = reserved - 1, .y = 1
 	};
@@ -1282,7 +1297,7 @@ void    right_column_refresh(void)
 	position.y += 1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
-	    position.y += 3;
+	position.y += 3;
 	box_size.y  = 3;
 	//si on est en train de construire une défense, on affiche son texte
 	if (game_state==GAME_SELECT_DEF)
@@ -1439,8 +1454,8 @@ void    monster_pool_expand(uint32_t expand_size)
 // Creates and initialized the pool of all monsters
 void    monster_pool_create(uint32_t pool_size)
 {
-	    //free une eventuelle mémoire précédente
-	    monster_pool_destroy();
+	//free une eventuelle mémoire précédente
+	monster_pool_destroy();
 	// Allocate the memory to store the monsters
 	monster_pool_expand(pool_size);
 }

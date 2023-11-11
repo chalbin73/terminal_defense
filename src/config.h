@@ -30,7 +30,7 @@ typedef enum COLOR {
 	COL_BLUE      =4,
 	COL_MAGENTA   =5,
 	COL_CYAN      =6,
-	COL_WHITE     =7,
+	COL_WHITE     =15,
 	COL_GRAY_DARK =233,
 	COL_GRAY      =237,
 	COL_GRAY_LIGHT=240,

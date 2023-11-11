@@ -23,7 +23,7 @@ extern tab_size_t termsize;
  **********************************/
 
 
-//un pixel: une couleur,une couleur de fond, et 1 caractère UTF_8 (donc 4 char)
+//un pixel: une couleur,une couleur de fond, et 1 caractère UTF_8 (donc max 4 char)
 typedef struct
 {
 	int color;
@@ -47,7 +47,7 @@ typedef struct
 
 //mets en place les graphismes
 void         init_graphical(void);
-//appellé a la sortie, résponsable de clean les graphisme
+//appellé a la sortie, résponsable de clean les graphisme et de free les variables
 void         graphical_cleanup(void);
 
 
@@ -56,15 +56,18 @@ void         graphical_cleanup(void);
  ******************************************/
 
 //@brief compare 2 pixels
+//@return Renvoie true si les 2 pixels sont égaux
 bool         pix_equal(pixel_t pix1, pixel_t pix2);
 
 //séléctionne une sous image (renvoie une image "rognée" / "masqué"). La première image reste valide
 //cette copie est fantôme et touts changement a l'image renvoyée se repercute sur l'image en paramettre
+//version par min max et version par taille
 picture_t    pict_crop_bound(picture_t pict, coordonee_t min, coordonee_t max);
 picture_t    pict_crop_size(picture_t pict, coordonee_t min, coordonee_t size);
+
 //@brief mets le curseur a la position x,y sur le terminal
 void         go_to(coordonee_t pos);
-//@brief avance le curseur de nb char (vers la droite)
+//@brief avance le curseur de nb char (vers la droite, sur la même ligne)
 void         advance_cursor(uint nb);
 //set la couleur d'affichage
 void         set_color(int color);
@@ -72,7 +75,7 @@ void         set_color(int color);
 void         set_color_background(int color);
 //affiche sur le terminal une image a une position donnée
 void         pict_direct_display(picture_t pict, coordonee_t pos);
-//mets un string (anssi) dans une image
+//mets un string (ansi uniquement) dans une image
 void         txt_to_img(picture_t result, const char *text_to_display, COLOR text_color, COLOR background_color);
 
 /***************************
@@ -100,7 +103,13 @@ void    compose_init(void);
 void    compose_free(void);
 
 
-// Affiche un rectangle de couleur unie
+/* @brief Affiche un rectangle de couleur unie
+ * 
+ * @param color couleur du rectangle
+ * @param rank rang d'affichage du rectangle
+ * @param pos coin supérieur gauche du rectangle
+ * @param size taille du rectangle
+ */
 void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size);
 
 /* @brief affiche une image plan demandé
@@ -110,17 +119,23 @@ void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coord
  * @param pos position du coin superieur gauche de l'image
  */
 void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos);
-// @brief affiche du texte a un emplacment donné, dans une boite de taille size_of_text_box positionée en pos
+
+// @brief affiche du texte a un emplacment donné, dans une boite de taille size_of_text_box positionée en pos (si le texte dépasse, il est coupé)
 void    compose_disp_text(const char *text_to_display, COLOR text_color, COLOR background_color,
                           COMPOSE_RANK rank, coordonee_t pos, coordonee_t size_of_text_box);
+
 // @brief affiche un pixel au plan demandé
 void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos);
+
 // @brief calcule les changements a la position x,y
 void    compose_have_changed(coordonee_t pos);
+
 // @brief Affiche a l'écran les changements
 void    compose_refresh(void);
+
 // @brief efface un pixel
 void    compose_del_pix(COMPOSE_RANK rank, coordonee_t pos);
+
 /* @brief efface une zone
  *
  * @param rank rang dans lequel éffacer
@@ -128,5 +143,5 @@ void    compose_del_pix(COMPOSE_RANK rank, coordonee_t pos);
  * @param max position du coin superieur droit de la zone a éffacer
  */
 void    compose_del_area(COMPOSE_RANK rank, coordonee_t min, coordonee_t max);
-#endif //def GRAPHICALH
 
+#endif //def GRAPHICALH

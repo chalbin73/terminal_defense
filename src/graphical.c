@@ -138,7 +138,7 @@ void    init_graphical(void)
 bool    pix_equal(pixel_t pix1, pixel_t pix2)
 {
     //compare les charactères
-	//
+	//renvoie true si ils sont égaux
     if (pix1.c1!=pix2.c1)
         return false;                   //pixels différents
     if (pix1.c1=='\0')
@@ -164,29 +164,32 @@ bool    pix_equal(pixel_t pix1, pixel_t pix2)
 	if (pix1.c1==' ' && pix1.background_color==pix2.background_color) {
 		return true;
 	}
-    //touts les test sont passés: les 2 pixels sont égaux
-    return false;
+    //pas la même couleure
+	return false;
 }
 
 picture_t    pict_crop_bound(picture_t pict, coordonee_t min, coordonee_t max)
 {
     //coupe les cotés d'une image, sans copier les données
     //(une modification de cette image modifiera l'image de départ)
+	//
+	//fonctionne un peu comme une fenêtre / un cache
     return (picture_t)
            {
                .size =
                {
-                   .col    = max.x - min.x + 1,
+                   .col    = max.x - min.x + 1, //on mets la taille demandée
                    .row    = max.y - min.y + 1,
-                   .stride = pict.size.stride
+                   .stride = pict.size.stride  //on copie l'écart inter-ligne qui reste le même
                },
-               .data = &pict.data[offset_of(min, pict.size.stride)]
+               .data = &pict.data[offset_of(min, pict.size.stride)] //pointeur en haut a gauche
            };
 }
 
 picture_t    pict_crop_size(picture_t pict, coordonee_t min, coordonee_t size)
 {
     //coupe les cotés d'une image, sans copier les données
+	//comme pict crop bound, mais prend une taille plutôt que min/max
     return (picture_t)
            {
                .size =
@@ -207,7 +210,7 @@ void    go_to(coordonee_t    pos)
 }
 void    advance_cursor(uint    nb)
 {
-    //avance le cusreur de nb charctères
+    //avance le cusreur de nb charctères sur une ligne
     if (nb>0)
     {
         printf("\33[%uC", nb);
@@ -215,7 +218,7 @@ void    advance_cursor(uint    nb)
 }
 void    set_color(int    color)
 {
-    //si la couleur est différente de l'actuelle
+    //si la couleur est différente de l'actuelle (pour evitter de laguer en en envoyant a chaque fois)
     //set la nouvelle couleur a l'aide de carctères d'échapement
     if (color != cur_color)
     {
@@ -252,14 +255,15 @@ void    pict_direct_display(picture_t pict, coordonee_t pos)
 {
     //affiche sur le terminal une image a une position donnée
 
-    //optimisé pour un grand nombre de \0 (a ne pas afficher)
+    //optimisé pour un grand nombre de \0 (qui ne sont pas affichés)
 
     //pour chaque ligne
     for (int i = 0; i<pict.size.row; i++)
     {
-        //sert a compter le nombre de charactères depuis le derniers affichage
+        //sert a compter le nombre de charactères depuis le dernier affichage (pour pouvoir skip l'affichage des \0)
         //vaut -1 en cas de changement de ligne
         int ecart = -1;
+
         //pour chaque colonne
         for (int j = 0; j<pict.size.col; j++)
         {
@@ -288,9 +292,12 @@ void    pict_direct_display(picture_t pict, coordonee_t pos)
                     //on est a la bonne ligne, il suffit de se décaler
                     advance_cursor(ecart);
                 }
+				//on a afficher un pixel, on met l'écart a zero
                 ecart = 0;
+				//on set les couleurs
                 set_color(pixel->color);
                 set_color_background(pixel->background_color);
+				//puis on affiche les char du pixel (c'est un string si c'est de l'utf-8, un char puis sinon
                 printf( "%.4s", &(pixel->c1) );
             }
         }
@@ -300,18 +307,23 @@ void    pict_direct_display(picture_t pict, coordonee_t pos)
 //NB: ne supporte malheuresement pas l'utf-8
 void    txt_to_img(picture_t result, const char *text_to_display, COLOR text_color, COLOR background_color)
 {
+	//pixel de base
     pixel_t pixel_to_diplay =
     {
         .c2               = '\0',
         .background_color = background_color,
         .color            = text_color
     };
+	//position d'écriture dans l'image
     coordonee_t pos;
     int32_t counter = 0;
+	//pour chaque ligne
     for (pos.y = 0; pos.y < result.size.row; pos.y++)
     {
+		//pour chaque colonne
         for (pos.x = 0; pos.x < result.size.col; pos.x++)
         {
+			//on prend le char suivant
             char char_to_print = text_to_display[counter];
             counter++;
             if (char_to_print=='\0')
@@ -321,9 +333,10 @@ void    txt_to_img(picture_t result, const char *text_to_display, COLOR text_col
             }
             else if (char_to_print == '\n')
             {
-                //on passe a la ligne suivante
+                //on passe a la ligne suivante ( \n == a la ligne )
                 break;
             }
+			//on écrit dans l'image
             pixel_to_diplay.c1                              = char_to_print;
             result.data[offset_of(pos, result.size.stride)] = pixel_to_diplay;
         }
@@ -339,9 +352,9 @@ void    txt_to_img(picture_t result, const char *text_to_display, COLOR text_col
 //initialise le compositeur
 void    compose_init(void)
 {
+	//ecart entre deux image = taille d'une image
     compositor_stride = termsize.col * termsize.row;
     //on demande 5 images de la taille de l'écran, se suivant en mémoire
-    //l'écart (en nombre de pixels) et donc de compositor_stride (= nombre de pixels dans une image = col * row)
     compositor_pixels = (pixel_t *)safe_malloc(sizeof(pixel_t) * compositor_stride * 5);
 }
 
@@ -354,6 +367,8 @@ void    compose_free(void)
 
 void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size)
 {
+	//affiche un rectangle de la couleur demandé
+	//utilise des éspaces et background_color pour remplir le réctangle
     pixel_t pix_color =
     {
         .color = COL_DEFAULT,
@@ -361,11 +376,14 @@ void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coord
         .c1    = ' ',
         .c2    = '\0',
     };
-
+	
+	//pour chaque ligne
     for (int i = 0; i<size.y; i++)
     {
+		//pour chaque colonne
         for(int j = 0; j < size.x; j++)
         {
+			//on affiche l'espace
             compose_disp_pix(
                 pix_color,
                 rank,
@@ -373,7 +391,7 @@ void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coord
                     .x = j + pos.x,
                     .y = i + pos.y
                 }
-                );
+            );
         }
     }
 }
@@ -381,18 +399,19 @@ void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coord
 //donne une image au compositeur
 void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos)
 {
+	//pour chaque ligne
     for (int i = 0; i<pict.size.row; i++)
     {
-        //on copie l'image a l'aide de memcpy (copie par ligne entière)
+        //on copie la ligne a l'aide de memcpy
         //dans la mémoire du compositeur
 
-        //                        colonne        ligne           rang (profondeur) de l'image
-        memcpy(
-            &compositor_pixels[pos.x + (i + pos.y) * termsize.stride + rank * compositor_stride], //destination
-            &pict.data[i * pict.size.stride],                                                //source
+        memcpy(//             colonne|    --------ligne--------      |    rang (profondeur) de l'image
+            &compositor_pixels[pos.x + (i + pos.y) * termsize.stride + rank * compositor_stride], //destination (la mémoire du compositeur)
+            &pict.data[i * pict.size.stride],                                                //source (l'image)
             sizeof(pixel_t) * pict.size.col
             );                                                                               //nombre d'octets a copier
-        //puis on calcule les changements éventuels
+        
+		//puis on calcule les changements éventuels
         for (int j = pos.x; j<pos.x + pict.size.col; j++)
         {
             compose_have_changed(
@@ -402,25 +421,30 @@ void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos)
     }
 }
 
+//affiche du texte dans le compositeur
 void    compose_disp_text(const char *text_to_display, COLOR text_color, COLOR background_color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size_of_text_box)
 {
-    //getting location
+    //on obtient les pixels sur lesquels on doit écrire en séléctionnant le rang puis en croppant
     picture_t text_image =
     {
         .size = termsize, .data = &compositor_pixels[compositor_stride * rank]
     };
     text_image = pict_crop_size(text_image, pos, size_of_text_box);
+	//on mets le texte dans cette "image" (une partie de la mémoire du compositeur)
     txt_to_img(text_image, text_to_display, text_color, background_color);
 
+	//on calcule les changements éventuels
     for (int y=0; y<size_of_text_box.y; y++) {
 		for (int x=0; x<size_of_text_box.x; x++) {
 			compose_have_changed((coordonee_t){pos.x+x,pos.y+y});
 		}
     }
 }
+
 //donne un seul pixel au compositeur
 void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos)
 {
+	//copie ce pixel dans la mémoire du compositeur et calcul un éventuel changement
     compositor_pixels[pos.x + pos.y * termsize.stride + rank * compositor_stride] = pixel;
     compose_have_changed(pos);
 }
@@ -428,7 +452,11 @@ void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos)
 //calcule les changements a la position demandée
 void    compose_have_changed(coordonee_t    pos)
 {
+	//le but est de mettre des changements dans COMPOSE_CHANGES (la 4eme image) pour n'afficher ensuite que les changements
+
+
     //emplacement du pixel dans une image
+	//il suffit ensuite d'ajouter le stride du compositeur * le rang pour obtenir l'indice dans chacune des images du compositeur
     int offshet = offset_of(pos, termsize.stride);
 
     //calcul du nouveau pixel
@@ -437,12 +465,17 @@ void    compose_have_changed(coordonee_t    pos)
     {
         .c1 = '\0'
     };
-    //on obtient le premier pixel non-nul
+
+	//si il y a un pixel au premier rang, on l'affiche (il est "par dessus")
+	//sinon, on regarde au rang suivant, et ainsi de suite
+
+    //on obtient donc le premier pixel non-nul
     while (rank<=COMPOSE_BACK && pixel.c1=='\0')
     {
         pixel = compositor_pixels[ offshet + compositor_stride * rank ];
         rank += 1;
     }
+
     //si la couleur de fond et par défault, on va chercher celle des pixels en dessous
     while (rank<=COMPOSE_BACK && pixel.background_color==COL_DEFAULT)
     {
@@ -450,23 +483,31 @@ void    compose_have_changed(coordonee_t    pos)
             pixel.background_color = compositor_pixels[ offshet + compositor_stride * rank ].background_color;
         rank += 1;
     }
-    //si le pixel a changé, on l'ajoute au changements et on le modifie
+	//pixel contient donc le pixel a afficher
+
+    //si le pixel a changé depuis le dernier affichage (stocké dans le rang COMPOSE_RESULT),
+	//on l'ajoute au changements, sinon, on marque qu'il n'y a pas de changements sur ce pixel
     if ( !pix_equal(pixel, compositor_pixels[ offshet + compositor_stride * COMPOSE_RESULT ]) )
     {
         compositor_pixels[ offshet + compositor_stride * COMPOSE_CHANGES ] = pixel;
-    } //sinon, on le retire des changements
+    }
     else
     {
+		//changement transparent = pas de changements
         compositor_pixels[ offshet + compositor_stride * COMPOSE_CHANGES ].c1 = '\0';
     }
 }
+
+//affiche les changements depuis le dernier refresh
 void    compose_refresh(void)
 {
+	//l'image des changements est l'image au rang COMPOSE_CHANGES
     picture_t changes =
     {
         .size = termsize,
         .data = &compositor_pixels[compositor_stride * COMPOSE_CHANGES],
     };
+	//on l'affiche (les endroits non modifiés étant des \0, ils seront ignorés
     pict_direct_display(
         changes,
         (coordonee_t){ 0, 0 }
@@ -477,29 +518,34 @@ void    compose_refresh(void)
     int32_t offset;
     pixel_t pixel;
 
-    for (int32_t x = 0; x<termsize.col; x++)
+	//pour chaque lignes puis colonne
+    for (int32_t y = 0; y<termsize.row; y++)
     {
-        for (int32_t y = 0; y<termsize.row; y++)
+        for (int32_t x = 0; x<termsize.col; x++)
         {
             offset = x + termsize.col * y;
             pixel  = compositor_pixels[ offset + compositor_stride * COMPOSE_CHANGES ];
             //si le pixel a changé
             if (pixel.c1!='\0')
             {
+				//on le mets dans le résultat (et on retire le marqueur de changement
                 compositor_pixels[ offset + compositor_stride * COMPOSE_RESULT]     = pixel;
                 compositor_pixels[ offset + compositor_stride * COMPOSE_CHANGES].c1 = '\0';
             }
         }
     }
 }
-//efface un pixel
+
+//efface un pixel (le mets transparent)
 void    compose_del_pix(COMPOSE_RANK rank, coordonee_t pos)
 {
     compositor_pixels[pos.x + pos.y * termsize.stride + rank * compositor_stride].c1 = '\0';
     compose_have_changed(pos);
 }
+//efface une zone du compositeur
 void    compose_del_area(COMPOSE_RANK rank, coordonee_t min, coordonee_t max)
 {
+	//on appel simplement compose_del_pix sur chaque pixels
     for (int x = min.x; x<=max.x; x++)
     {
         for (int y = min.y; y<=max.y; y++)

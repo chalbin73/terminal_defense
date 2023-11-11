@@ -522,7 +522,7 @@ const difficulty_level difficulty_levels[DIFFICULTY_LEVEL_COUNT] =
     {
         .difficulty_name  = "HARDCORE™",
         .display_color    = COL_RED,
-        .difficulty_value = 12,
+        .difficulty_value = 10,
     }
 };
 
