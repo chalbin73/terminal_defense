@@ -7,7 +7,7 @@
 /****************************
  *** FONCTIONS UTILITAIRES ***
  *****************************/
-// definitions dans common.h
+// définitions dans common.h
 #if SYSTEM_POSIX
 struct timespec last_frame_time =
 {
@@ -19,27 +19,27 @@ clock_t last_frame_time = 0;
 
 void   *safe_malloc(size_t    size)
 {
-    //obtient de la place mémoire et vérifie qu'elle a bien été alouée
+    //obtient de la place mémoire et vérifie qu'elle a bien été allouée
     void *ptr;
     ptr = malloc(size);
     if (ptr!=NULL)
-    { //si la place est alloué, on renvoit le pointeur
+    { //si la place est allouée, on renvoie le pointeur
         return ptr;
-    } //sinon, on ferme le programme (cleanup va free ce qui a déja été aloué)
-    EXIT_MSG = "malloc a fail! sortie de programme!";
+    } //sinon, on ferme le programme (cleanup va free ce qui a déjà été alloué)
+    EXIT_MSG = "malloc a fail ! sortie de programme !";
     exit(254);
 }
 
 void   *safe_realloc(void *ptr, size_t new_size)
 {
-    //obtient de la place mémoire et vérifie qu'elle a bien été alouée
+    //obtient de la place mémoire et vérifie qu'elle a bien été allouée
     void *new_ptr;
     new_ptr = realloc(ptr, new_size);
     if (new_ptr!=NULL)
-    { //si la place est alloué, on renvoit le pointeur
+    { //si la place est allouée, on renvoie le pointeur
         return new_ptr;
-    } //sinon, on ferme le programme (cleanup va free ce qui a déja été aloué)
-    EXIT_MSG = "realloc a fail! sortie du programme!";
+    } //sinon, on ferme le programme (cleanup va free ce qui a déjà été alloué)
+    EXIT_MSG = "realloc a fail ! sortie du programme !";
 	exit(254);
 }
 int32_t    min(int32_t a, int32_t b)
@@ -67,13 +67,13 @@ int        td_wait(long    ms)
 {
     // Si le système cible est linux
     #if SYSTEM_POSIX
-    //nanosleep accept un struct en seconds et nanoseconds
+    //nanosleep accept un struct en seconds et nanosecondes
     //on convertit donc l'entrée
     struct timespec ts;
     ts.tv_sec  = ms / 1000;
     ts.tv_nsec = (ms % 1000) * 1000000;
     return nanosleep(&ts, &ts);
-    #else // Si le système cible est windows
+    #else // Si le système cible est Windows
     return Sleep(ms);
     #endif
 }
@@ -82,13 +82,13 @@ int        td_wait(long    ms)
 void    wait_for_next_frame(void)
 {
 #if SYSTEM_POSIX
-	//on regarde combien de temps s'est écouler depuis la dernière frame
+	//on regarde combien de temps s'est écoulé depuis la dernière frame
     struct timespec actual_time;
     clock_gettime(CLOCK_MONOTONIC, &actual_time);
     long int diff_in_ms = (actual_time.tv_nsec - last_frame_time.tv_nsec) / 1000000 + //nanoseconde component
                           (actual_time.tv_sec - last_frame_time.tv_sec) * 1000; //second component
 	
-	//si le temps est abérant (ou qu'on lague)
+	//si le temps est aberrant (ou qu'on lague)
     if (diff_in_ms<0 || diff_in_ms>FRAME_TIME)
     {
         //on n'attend pas
@@ -96,8 +96,8 @@ void    wait_for_next_frame(void)
     }
     else
     {
-		//sinon, on update le temp de last_frime_time a la fin de temps de la frame actuelle
-        last_frame_time.tv_nsec += FRAME_TIME * 1000000;  //on ajoute FRAME_TIME millisecondes (convertit en nano secondes)
+		//sinon, on update le temps de last_frame_time a la fin de temps de la frame actuelle
+        last_frame_time.tv_nsec += FRAME_TIME * 1000000;  //on ajoute FRAME_TIME millisecondes (convertit en nanosecondes)
         if (last_frame_time.tv_nsec>=1000000000)
         {
             last_frame_time.tv_nsec -= 1000000000;
@@ -107,7 +107,7 @@ void    wait_for_next_frame(void)
         td_wait(FRAME_TIME - diff_in_ms);
     }
 #elif SYSTEM_WINDOWS
-	//pareil, mais avec des appels système diférent
+	//pareil, mais avec des appels système différent
 	clock_t now=clock();
 	long int diff_in_ms=(now-last_frame_time) / CLOCKS_PER_MSEC;
 	if (diff_in_ms<0 || diff_in_ms>FRAME_TIME)
@@ -128,7 +128,7 @@ void    wait_for_next_frame(void)
 /*****************
  *** RESSOURCES ***
  ******************/
-//definitions dans terminaldefense.h
+//définitions dans terminaldefense.h
 
 // Types de monstres (caractéristiques)
 const monster_type_t runner =
@@ -164,7 +164,7 @@ const monster_type_t armored =
     }
 };
 
-// Types de defenses
+// Types de défenses
 const defense_type_t basic_wall =
 {
     .max_life = 600,
@@ -311,7 +311,7 @@ const defense_type_t la_base =
 	.short_txt = "Base!"
 };
 
-// Un cadre pour afficher les choix de selection
+// Un cadre pour afficher les choix de sélection
 /*  ╭─╮
  *  │ │
  *  ╰─╯
@@ -414,7 +414,7 @@ const picture_t frame =
 };
 
 
-// L'arbre de selection des tourelles
+// L'arbre de sélection des tourelles
 const defence_choice_tree_t walls =
 {
 	.icon                 =
@@ -441,7 +441,7 @@ const defence_choice_tree_t walls =
 		[0] = &main_selection_tree, //rendu comme le bouton "Retour"
 	}
 };
-//l'arbre de séléction des tourelles
+//l'arbre de sélection des tourelles
 const defence_choice_tree_t turrets =
 {
 	.icon                 =
@@ -454,7 +454,7 @@ const defence_choice_tree_t turrets =
 		.background_color = COL_DEFAULT
 	},
 	.short_txt     = "Tourelles",
-	.desc_txt      = "Tourelles,\nattaquent les\na distance",
+	.desc_txt      = "Tourelles,\nattaquent les ennemis\na distance",
 	.defense_count = 4,
 	.defenses      = (const defense_type_t * [4] )
 	{

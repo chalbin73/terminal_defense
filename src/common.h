@@ -1,5 +1,5 @@
 #define _POSIX_C_SOURCE 199309L //sinon, nanosleep n'est pas définie (et usleep non plus)
-                                //(et je ne comprend pas quelle fonction on devrait utiliser)
+                                //(et je ne comprends pas quelle fonction on devrait utiliser)
 
 #ifndef COMMONH
 #define COMMONH
@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <time.h>
 
-//nombre de cycle de clock en une miliseconde
+//nombre de cycle de clock en une milliseconde
 #define CLOCKS_PER_MSEC ( (CLOCKS_PER_SEC) / 1000 )
 //temps entre chaque tour, en milliseconde
 #define FRAME_TIME 100
@@ -54,10 +54,10 @@ typedef struct
  * Le mot clé extern est utilisé plusieurs fois dans ce projet:
  *
  * Il est utilisé dans une déclaration dans un fichier .h pour indiquer au compilateur
- * que la definition de sa valeur se fait dans un fichier .c .
+ * que la définition de sa valeur se fait dans un fichier .c .
  *
  * Ainsi, une variable peut être simplement déclarée (sans valeur) dans .h avec le mot clé extern
- * et sa valeur peut être assigné dans un autre fichié .c.
+ * et sa valeur peut être assigné dans un autre fichier .c.
  *
  * Cela permet d'avoir des variables globales statiques (qui ne sont pas vouées à changer).
  *
@@ -72,27 +72,27 @@ int32_t    min(int32_t a, int32_t b);
 // @brief renvoie l'argument le plus grand
 int32_t    max(int32_t a, int32_t b);
 
-/* @brief Rammène v dans l'intervale min-max
+/* @brief Ramène v dans l'intervalle min-max
  *
- * @param v entier a borner
- * @param min_v borne inferieure
+ * @param v entier à borner
+ * @param min_v borne inférieure
  * @param max_v borne supérieure
  *
  * @return v si min<v<max, la borne la plus proche sinon
  */
 int32_t clamp(int32_t v, int32_t min_v, int32_t max_v);
 
-// @brief attend ms milliseconde
+// @brief attend ms millisecondes
 int td_wait(long int ms);
 // @brief attend la prochaine frame
 void wait_for_next_frame(void);
 
 /* @brief malloc, avec vérification de retour intégrée
  *
- * @param size Taille a allouer, en octet
+ * @param size Taille à allouer, en octet
  * @return un pointeur sur un tableau de size octet, toujours valide
  *
- * @note apelle exit (et ne retourne donc jamais) en cas de problème d'allocation
+ * @note appelle exit (et ne retourne donc jamais) en cas de problème d'allocation
  */
 void      *safe_malloc(size_t    size);
 // @brief comme safe_malloc, mais pour realloc
