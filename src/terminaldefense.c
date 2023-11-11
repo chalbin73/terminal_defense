@@ -560,6 +560,7 @@ uint32_t    game_menu()
 
 	while(true)
 	{
+		td_wait(100);
 		while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
 		{
 			if(input == KEY_DOWN)
@@ -572,7 +573,8 @@ uint32_t    game_menu()
 			}
 			if(input == KEY_LEFT || input == '\x3')
 			{
-				exit(130);
+				EXIT_MSG="Quiting!";
+				exit(0);
 			}
 			if(input == KEY_RIGHT)
 			{
