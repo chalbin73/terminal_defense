@@ -15,21 +15,8 @@
  *** GLOBALS VARIABLES ***
  *************************/
 
+//taille du terminal
 extern tab_size_t termsize;
-
-extern const char CHARS_BLOCK_UP[4];
-extern const char CHARS_BLOCK_DOWN[4];
-extern const char CHARS_BLOCK_FULL[4];
-extern const char CHARS_BLOCK_LEFT[4];
-extern const char CHARS_BLOCK_RIGHT[4];
-extern const char CHARS_BLOCK_LIGHT[4];
-extern const char CHARS_BLOCK_MEDIUM[4];
-extern const char CHARS_BLOCK_DARK[4];
-extern const char CHARS_TRIANGLE_LEFT[4];
-extern const char CHARS_TRIANGLE_RIGHT[4];
-extern const char CHARS_TRIANGLE_DOWN[4];
-extern const char CHARS_TRIANGLE_UP[4];
-
 
 /*********************************
  *** TYPEDEFS AND GENERAL STUFF ***
@@ -39,12 +26,12 @@ extern const char CHARS_TRIANGLE_UP[4];
 //un pixel: une couleur,une couleur de fond, et 1 caractère UTF_8 (donc 4 char)
 typedef struct
 {
-    int     color;
-    int     background_color;
-    char    c1;
-    char    c2;
-    char    c3;
-    char    c4;
+	int color;
+	int background_color;
+	char c1;
+	char c2;
+	char c3;
+	char c4;
 } pixel_t;
 
 // Les images sont des tableau de pixels
@@ -52,8 +39,8 @@ typedef struct
 // stride renseigne de combien on doit se décaler pour accéder a la ligne suivante
 typedef struct
 {
-    tab_size_t    size;
-    pixel_t      *data;
+	tab_size_t size;
+	pixel_t      *data;
 } picture_t;
 
 //declaration de fonctions
@@ -76,13 +63,13 @@ bool         pix_equal(pixel_t pix1, pixel_t pix2);
 picture_t    pict_crop_bound(picture_t pict, coordonee_t min, coordonee_t max);
 picture_t    pict_crop_size(picture_t pict, coordonee_t min, coordonee_t size);
 //@brief mets le curseur a la position x,y sur le terminal
-void         go_to(coordonee_t    pos);
+void         go_to(coordonee_t pos);
 //@brief avance le curseur de nb char (vers la droite)
-void         advance_cursor(uint    nb);
+void         advance_cursor(uint nb);
 //set la couleur d'affichage
-void         set_color(int    color);
+void         set_color(int color);
 //set la couleur d'affichage background
-void         set_color_background(int    color);
+void         set_color_background(int color);
 //affiche sur le terminal une image a une position donnée
 void         pict_direct_display(picture_t pict, coordonee_t pos);
 //mets un string (anssi) dans une image
@@ -95,16 +82,16 @@ void         txt_to_img(picture_t result, const char *text_to_display, COLOR tex
 // @brief Rangs compris par le compositeur
 typedef enum COMPOSE_RANK
 {
-    //premier plan
-    COMPOSE_UI = 0,
-    //second plan
-    COMPOSE_ARENA = 1,
-    //arière plan
-    COMPOSE_BACK = 2,
-    //privé, composition des images
-    COMPOSE_RESULT = 3,
-    //privé, changement depuis la dèrnière frames
-    COMPOSE_CHANGES = 4,
+	//premier plan
+	COMPOSE_UI = 0,
+	//second plan
+	COMPOSE_ARENA = 1,
+	//arière plan
+	COMPOSE_BACK = 2,
+	//privé, composition des images
+	COMPOSE_RESULT = 3,
+	//privé, changement depuis la dèrnière frames
+	COMPOSE_CHANGES = 4,
 } COMPOSE_RANK;
 
 // @brief initialise le compositeur
@@ -129,7 +116,7 @@ void    compose_disp_text(const char *text_to_display, COLOR text_color, COLOR b
 // @brief affiche un pixel au plan demandé
 void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos);
 // @brief calcule les changements a la position x,y
-void    compose_have_changed(coordonee_t    pos);
+void    compose_have_changed(coordonee_t pos);
 // @brief Affiche a l'écran les changements
 void    compose_refresh(void);
 // @brief efface un pixel

@@ -7,13 +7,14 @@
 /****************************
  *** FONCTIONS UTILITAIRES ***
  *****************************/
+// definitions dans common.h
 #if SYSTEM_POSIX
 struct timespec last_frame_time =
 {
     0, 0
 };
 #elif SYSTEM_WINDOWS
-long last_frame_time = 0;
+clock_t last_frame_time = 0;
 #endif
 
 void   *safe_malloc(size_t    size)
@@ -22,11 +23,10 @@ void   *safe_malloc(size_t    size)
     void *ptr;
     ptr = malloc(size);
     if (ptr!=NULL)
-    {
+    { //si la place est alloué, on renvoit le pointeur
         return ptr;
-    }
+    } //sinon, on ferme le programme (cleanup va free ce qui a déja été aloué)
     EXIT_MSG = "malloc a fail! sortie de programme!";
-    //la fonction cleanup *devrait* clean notre bordel
     exit(254);
 }
 
@@ -36,12 +36,11 @@ void   *safe_realloc(void *ptr, size_t new_size)
     void *new_ptr;
     new_ptr = realloc(ptr, new_size);
     if (new_ptr!=NULL)
-    {
+    { //si la place est alloué, on renvoit le pointeur
         return new_ptr;
-    }
+    } //sinon, on ferme le programme (cleanup va free ce qui a déja été aloué)
     EXIT_MSG = "realloc a fail! sortie du programme!";
-    //la fonction cleanup *devrait* clean notre bordel
-    exit(254);
+	exit(254);
 }
 int32_t    min(int32_t a, int32_t b)
 {
@@ -57,7 +56,7 @@ int32_t    max(int32_t a, int32_t b)
     else
         return b;
 }
-
+//renvoie v, borné entre min_v et max_v
 int32_t    clamp(int32_t v, int32_t min_v, int32_t max_v)
 {
     return min( max_v, max(v, min_v) );
@@ -74,7 +73,7 @@ int        td_wait(long    ms)
     ts.tv_sec  = ms / 1000;
     ts.tv_nsec = (ms % 1000) * 1000000;
     return nanosleep(&ts, &ts);
-    #else // Si le système cible est autre chose (windows)
+    #else // Si le système cible est windows
     return Sleep(ms);
     #endif
 }
@@ -83,36 +82,55 @@ int        td_wait(long    ms)
 void    wait_for_next_frame(void)
 {
 #if SYSTEM_POSIX
+	//on regarde combien de temps s'est écouler depuis la dernière frame
     struct timespec actual_time;
     clock_gettime(CLOCK_MONOTONIC, &actual_time);
     long int diff_in_ms = (actual_time.tv_nsec - last_frame_time.tv_nsec) / 1000000 + //nanoseconde component
                           (actual_time.tv_sec - last_frame_time.tv_sec) * 1000; //second component
+	
+	//si le temps est abérant (ou qu'on lague)
     if (diff_in_ms<0 || diff_in_ms>FRAME_TIME)
     {
-        //heavily lagging,
-        //clock uninitialized or looped around (32-bits maybe)
+        //on n'attend pas
         last_frame_time = actual_time;
     }
     else
     {
-        last_frame_time.tv_nsec += FRAME_TIME * 1000000;  //on ajoute FRAME_TIME millisecondes
+		//sinon, on update le temp de last_frime_time a la fin de temps de la frame actuelle
+        last_frame_time.tv_nsec += FRAME_TIME * 1000000;  //on ajoute FRAME_TIME millisecondes (convertit en nano secondes)
         if (last_frame_time.tv_nsec>=1000000000)
         {
             last_frame_time.tv_nsec -= 1000000000;
             last_frame_time.tv_sec  += 1;
         }
+		//puis on attend la fin de la frame
         td_wait(FRAME_TIME - diff_in_ms);
     }
 #elif SYSTEM_WINDOWS
-#error Clock not yet implemented on windows.
+	//pareil, mais avec des appels système diférent
+	clock_t now=clock();
+	long int diff_in_ms=(now-last_frame_time) / CLOCKS_PER_MSEC;
+	if (diff_in_ms<0 || diff_in_ms>FRAME_TIME)
+    {
+        //heavily lagging,
+        //clock uninitialized or looped around (32-bits maybe)
+        last_frame_time = now;
+    }
+    else
+    {
+        last_frame_time += FRAME_TIME * CLOCKS_PER_MSEC ;
+        td_wait(FRAME_TIME - diff_in_ms);
+    }
+
 #endif
 }
 
 /*****************
  *** RESSOURCES ***
  ******************/
+//definitions dans terminaldefense.h
 
-// Types de monstres
+// Types de monstres (caractéristiques)
 const monster_type_t runner =
 {
     .speed            = 2,
@@ -162,8 +180,8 @@ const defense_type_t basic_wall =
         .c3               = '\xBF',
         .c4               = '\0',
     },
-    .desc_txt  = "Mur basique",
-    .short_txt = "Mur\nbasique"
+    .desc_txt  = "Mur basique", //affiché au survol
+    .short_txt = "Mur\nbasique" //affiché dans le menu construction (a coté des choix)
 };
 const defense_type_t advanced_wall =
 {
@@ -224,10 +242,10 @@ const defense_type_t medium_turret =
 	.max_life = 50,
 	.damage   = 25,
 	.range    = 7,
-	.cost     = 500,
+	.cost     = 475,
 	.sprite   =
 	{
-		.color            = COL_GRAY,
+		.color            = COL_GREEN,
 		.background_color = COL_DEFAULT,
 		.c1               = '\xc2', //¶
 		.c2               = '\xb6',
@@ -241,7 +259,7 @@ const defense_type_t long_range_turret =
 {
 	.max_life = 50,
 	.damage   = 25,
-	.range    = 14,
+	.range    = 16,
 	.cost     = 750,
 	.sprite   =
 	{
@@ -259,8 +277,8 @@ const defense_type_t heavy_turret =
 {
 	.max_life = 50,
 	.damage   = 60,
-	.range    = 7,
-	.cost     = 1250,
+	.range    = 8,
+	.cost     = 1200,
 	.sprite   =
 	{
 		.color            = COL_BLUE,
@@ -273,6 +291,7 @@ const defense_type_t heavy_turret =
 	.desc_txt  = "Tourelle avancee\ninfligeant\nde gros degats",
 	.short_txt = "Tourelle\npuissante"
 };
+//la base est juste une défense qu'on ne peut pas construire, et qui est un gros mur
 const defense_type_t la_base =
 {
 	.max_life = 10000,
@@ -419,9 +438,10 @@ const defence_choice_tree_t walls =
 	.sub_category_count = 1,
 	.sub_categories     = (const defence_choice_tree_t * [1])
 	{
-		[0] = &main_selection_tree,
+		[0] = &main_selection_tree, //rendu comme le bouton "Retour"
 	}
 };
+//l'arbre de séléction des tourelles
 const defence_choice_tree_t turrets =
 {
 	.icon                 =
@@ -446,10 +466,10 @@ const defence_choice_tree_t turrets =
 	.sub_category_count = 1,
 	.sub_categories     = (const defence_choice_tree_t * [1])
 	{
-		[0] = &main_selection_tree,
+		[0] = &main_selection_tree, //rendu comme le bouton "Retour"
 	}
 };
-
+//l'arbre initial du menu construction
 const defence_choice_tree_t main_selection_tree =
 {
     .icon                 =
@@ -461,7 +481,7 @@ const defence_choice_tree_t main_selection_tree =
         .color            = COL_TEXT,
         .background_color = COL_DEFAULT
     },
-    .short_txt = "Retour",
+    .short_txt = "Retour", //puisqu'on y accède depuis les sous-menus
     .desc_txt  = "Menu de construction principal",
 
     .defense_count = 0,
@@ -474,7 +494,7 @@ const defence_choice_tree_t main_selection_tree =
         [0] = &walls,
     }
 };
-
+//niveau de difficultés
 const difficulty_level difficulty_levels[DIFFICULTY_LEVEL_COUNT] = 
 {
     [0] = 

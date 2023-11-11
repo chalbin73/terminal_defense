@@ -12,6 +12,7 @@
 
 //nombre de cycle de clock en une miliseconde
 #define CLOCKS_PER_MSEC ( (CLOCKS_PER_SEC) / 1000 )
+//temps entre chaque tour, en milliseconde
 #define FRAME_TIME 100
 
 #if defined(__unix__) || (defined (__APPLE__) && defined ( __MACH__) )
@@ -66,23 +67,35 @@ typedef struct
 // Message de sortie du programme
 extern const char *EXIT_MSG;
 
-//renvoie l'argument le plus petit
+// @brief renvoie l'argument le plus petit
 int32_t    min(int32_t a, int32_t b);
-//renvoie l'argument le plus grand
+// @brief renvoie l'argument le plus grand
 int32_t    max(int32_t a, int32_t b);
 
-// Rammène v dans l'intervale min-max
-int32_t clamp(int32_t v, int32_t min, int32_t max);
+/* @brief Rammène v dans l'intervale min-max
+ *
+ * @param v entier a borner
+ * @param min_v borne inferieure
+ * @param max_v borne supérieure
+ *
+ * @return v si min<v<max, la borne la plus proche sinon
+ */
+int32_t clamp(int32_t v, int32_t min_v, int32_t max_v);
 
-//attend ms milliseconde
+// @brief attend ms milliseconde
 int td_wait(long int ms);
-//attend la prochaine frame
+// @brief attend la prochaine frame
 void wait_for_next_frame(void);
 
-//malloc, en vérifiant que tout s'est bien passé
-//plante "proprement" si ce n'est pas le cas
+/* @brief malloc, avec vérification de retour intégrée
+ *
+ * @param size Taille a allouer, en octet
+ * @return un pointeur sur un tableau de size octet, toujours valide
+ *
+ * @note apelle exit (et ne retourne donc jamais) en cas de problème d'allocation
+ */
 void      *safe_malloc(size_t    size);
-//pareil pour realloc
+// @brief comme safe_malloc, mais pour realloc
 void      *safe_realloc(void *ptr, size_t new_size);
 
 /* @brief renvoi l'offset associé a un couple coo-stride

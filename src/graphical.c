@@ -1,50 +1,41 @@
 #include "graphical.h"
 
-
+//taille du terminal
 tab_size_t termsize;
+//settings du terminal (a réstaurer lors de la fin du jeu)
 struct termios orig_term_settings;
+//pour savoir si on a besoin de dire au terminal de changer sa couleur d'affichage ou pas
+//(eviter de le faire a chaque char si ils sont de la mème couleure)
 COLOR cur_color, cur_color_background;
+//buffer pour la sortie d'affichage (permet un affichage plus rapide, mais demande de fflush a la main lors des affichage)
 char stdout_buffer[100];
 //stockage des pixels utilisée par le compositeur
-//c'est un tableau 3D (images (sans la taille) les unes a la suite des autres)
+//c'est un tableau 3D (5 images les unes a la suite des autres)
 //chaque image 2D a pour taille termsize, et l'éspacement entre chaque images est stocké dans compositor_stride
 pixel_t *compositor_pixels;
 uint compositor_stride;
 
 
-const char CHARS_BLOCK_UP[4]       = "▀";
-const char CHARS_BLOCK_DOWN[4]     = "▄";
-const char CHARS_BLOCK_FULL[4]     = "█";
-const char CHARS_BLOCK_LEFT[4]     = "▌";
-const char CHARS_BLOCK_RIGHT[4]    = "▐";
-const char CHARS_BLOCK_LIGHT[4]    = "░";
-const char CHARS_BLOCK_MEDIUM[4]   = "▒";
-const char CHARS_BLOCK_DARK[4]     = "▓";
-const char CHARS_TRIANGLE_LEFT[4]  = "◀";
-const char CHARS_TRIANGLE_RIGHT[4] = "▶";
-const char CHARS_TRIANGLE_DOWN[4]  = "▼";
-const char CHARS_TRIANGLE_UP[4]    = "▲";
-
-
 void    graphical_cleanup(void)
 {
-    //appellé a la sortie, résponsable de clean les graphisme
+    //appellé a la sortie, résponsable de clean les graphisme et de réstaurer le terminal
 
     //restore les attributs du terminal
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_term_settings);
-    //réaffiche le curseur, et reset la couleur
+    //réaffiche le curseur, et reset la couleur d'affichage au valeur par défault
     printf("%s", "\33[H \33[?25h \33[0m \33[2J");
-
+	
+	//free les variables du compositeur
     compose_free();
-
 }
 
 void    init_graphical(void)
 {
-    //mets en place les graphismes
+    //*mets en place les graphismes*
+	
     //mets en place le buffering
     setvbuf(stdout, stdout_buffer, _IOFBF, 100);
-    //maximise le terminal et cache le curseur
+    //cache le curseur
     printf("%s", "\33[?25l");
     //obtention de la taille de l'écran
     struct winsize raw_termsize;
@@ -64,12 +55,15 @@ void    init_graphical(void)
     raw.c_oflag   &= ~(OPOST);
     raw.c_cflag   &= ~(CSIZE | PARENB);
     raw.c_cflag   |= CS8;
-    raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;     //VTIME a 1 permet de timeout scanf au bout de 0.1 secondes (jeu a 10 fps)
-    //tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+
+	//VTIME et VMIN permettent a scanf (read) de retourner instantanément 0 si l'utilisateur n'a rien rentré
+	//et de fonctionner normalement sinon
+    raw.c_cc[VMIN] = 0; raw.c_cc[VTIME] = 0;
+    //applique tout les changements
     tcsetattr(STDIN_FILENO, TCSANOW, &raw);
     #endif //SYSTEM_POSIX
 
-    //setup windows, non tésté, par manque de machine windows a disposition
+    //setup windows, non testé, par manque de machine windows a disposition
     #if SYSTEM_WINDOWS
     // Set output mode to handle virtual terminal sequences
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -125,13 +119,14 @@ void    init_graphical(void)
 
     #endif //SYSTEM_WINDOWS
 
-    //set terminal locale to make behavior more robust accros different settings
+    //set la langue a rien, pour que certaint settings de langue bizarre
+	//(ex langue de droite a gauche) n'influent pas sur le programme
     setlocale(LC_ALL, "");
     //set la valeur par default de certaine variables globales
     cur_color            = COL_DEFAULT;
     cur_color_background = COL_DEFAULT;
+	//initialise le compositeur
     compose_init();
-    //chaine vide (des 0) pour l'input_string
 }
 
 
@@ -143,6 +138,7 @@ void    init_graphical(void)
 bool    pix_equal(pixel_t pix1, pixel_t pix2)
 {
     //compare les charactères
+	//
     if (pix1.c1!=pix2.c1)
         return false;                   //pixels différents
     if (pix1.c1=='\0')

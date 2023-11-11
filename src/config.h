@@ -2,7 +2,8 @@
 #define CONFIG
 
 //** raccourcis claviers **
-//vous devez mettre des lettres minuscule (Ctrl+Char autorisé pour key_quit et key_pause)
+//vous devez mettre des lettres minuscule, sauf pour key_quit et key_pause,
+//ou tout les charactères ASCII sauf echap (\e) sont autorisés
 enum keys {
 	KEY_QUIT = '', //Ctrl+C
 	KEY_UP = 'z',
@@ -14,12 +15,15 @@ enum keys {
 };
 
 //** COULEURS  **
-//quelques couleurs standard. (a ne pas toucher, sauf si vous etes daltonien/voulez inverser toute les couleurs du jeu)
+//quelques couleurs standard.
 //il est toujour possible d'utiliser toute la palette de 256 couleurs terminal
 //(RGB 8bit + quelques gris et couleurs standard)
 typedef enum COLOR {
+	//ne pas toucher
 	COL_DEFAULT   =-1,
-	COL_BLACK     =0,
+
+	//ne touchez que si vous etes surs de vous
+ 	COL_BLACK     =0,
 	COL_RED       =1,
 	COL_GREEN     =2,
 	COL_YELLOW    =3,
@@ -40,8 +44,5 @@ typedef enum COLOR {
 
 
 } COLOR;
-
-
-//** Autre configs **
 
 #endif //ifdef config
