@@ -35,6 +35,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
 
 1) Le terminal dans lequel est lancé le jeu ne doit pas être changé de taille une fois le jeu lancé, mettez donc votre terminal
     a la taille souhaité pour jouer avant de lancer le jeu (pour une experience optimale, mettez vous en plein écran)
+    (un fonctionement minimal requiert une taille de plus de 30*20 char, des bugs graphiques peuvent apparaitre en dessous)
 2) Apprennez les raccourcis claviers (pour les modifier, changez `src/config.h` et recompilez. c'est impossible sur la version internet):
     - Les touches de déplacements (par défault `z q s d`), Maj + déplacement pour 5 cases
     - le menu construction (par défault `c`)

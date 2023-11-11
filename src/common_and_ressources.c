@@ -176,7 +176,7 @@ const defense_type_t advanced_wall =
 		.c3               = '\xBF',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Mur bien plus\nrésistant",
+	.desc_txt  = "Mur bien plus\nresistant",
 	.short_txt = "Mur++"
 };
 const defense_type_t electric_wall =
@@ -194,8 +194,8 @@ const defense_type_t electric_wall =
 		.c3               = '\xBF',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Mur éléctrique:\nfait des dégats\nau contact",
-	.short_txt = "Mur\néléctrique"
+	.desc_txt  = "Mur electrique:\nfait des degats\nau contact",
+	.short_txt = "Mur\nelectrique"
 };
 const defense_type_t basic_turret =
 {
@@ -248,7 +248,7 @@ const defense_type_t long_range_turret =
 		.c3               = '\0',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Tourelle avancée\ngrande portée",
+	.desc_txt  = "Tourelle avancee\ngrande portee",
 	.short_txt = "Tourelle\ndistance"
 };
 const defense_type_t heavy_turret =
@@ -266,7 +266,7 @@ const defense_type_t heavy_turret =
 		.c3               = '\0',
 		.c4               = '\0',
 	},
-	.desc_txt  = "Tourelle avancée\ngros dégats",
+	.desc_txt  = "Tourelle avancee\ninfligeant\nde gros degats",
 	.short_txt = "Tourelle\npuissante"
 
 };
@@ -285,7 +285,7 @@ const defense_type_t la_base =
 		.c3               = '\x91',
 		.c4               = 0,
 	},
-	.desc_txt  = "Votre base,\ndefendez là!",
+	.desc_txt  = "Votre base,\ndefendez la!",
 	.short_txt = "Base!"
 };
 
@@ -431,7 +431,7 @@ const defence_choice_tree_t turrets =
 		.background_color = COL_DEFAULT
 	},
 	.short_txt     = "Tourelles",
-	.desc_txt      = "Tourelles,\nattaquent les\nà distance",
+	.desc_txt      = "Tourelles,\nattaquent les\na distance",
 	.defense_count = 4,
 	.defenses      = (const defense_type_t * [4] )
 	{
