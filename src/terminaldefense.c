@@ -213,49 +213,71 @@ void    clear_input(void)
 }
 
 /*** CURSOR ***/
-void display_range_overlay(void){
+void    display_range_overlay(void)
+{
 	//affiche la range des tourelles
-	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
-	const defense_type_t *type=defense_array[offset_of(cursor_pos, arena_size.stride)].type;
-	if (type!=NULL) {
-		int range=type->range;
-		if (range>0) {
-			pixel_t pixel=(pixel_t){.c1=' ',.c2='\0',
-				                    .color=COL_DEFAULT,
-				                    .background_color=COL_GRAY,};
+	compose_disp_pict(
+		background,
+		COMPOSE_BACK,
+		(coordonee_t){ 0, 0 }
+		);
+	const defense_type_t *type = defense_array[offset_of(cursor_pos, arena_size.stride)].type;
+	if (type!=NULL)
+	{
+		int range = type->range;
+		if (range>0)
+		{
+			pixel_t pixel = (pixel_t)
+			{
+				.c1               = ' ', .c2 = '\0',
+				.color            = COL_DEFAULT,
+				.background_color = COL_GRAY,
+			};
 			coordonee_t position;
-			position.y=cursor_pos.y-range;
+			position.y = cursor_pos.y - range;
 			//ligne supérieure
-			if (position.y>=0) {
-				for (position.x=cursor_pos.x-range ; position.x<=cursor_pos.x+range; position.x+=1) {
-					if (0<=position.x && position.x<arena_size.col) {
+			if (position.y>=0)
+			{
+				for (position.x = cursor_pos.x - range ; position.x<=cursor_pos.x + range; position.x += 1)
+				{
+					if (0<=position.x && position.x<arena_size.col)
+					{
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
 			}
 			//ligne inférieure
-			position.y=cursor_pos.y+range;
-			if (position.y<arena_size.row) {
-				for (position.x=cursor_pos.x-range ; position.x<=cursor_pos.x+range; position.x+=1) {
-					if (0<=position.x && position.x<arena_size.col) {
+			position.y = cursor_pos.y + range;
+			if (position.y<arena_size.row)
+			{
+				for (position.x = cursor_pos.x - range ; position.x<=cursor_pos.x + range; position.x += 1)
+				{
+					if (0<=position.x && position.x<arena_size.col)
+					{
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
 			}
 			//colonne droite
-			position.x=cursor_pos.x-range;
-			if (position.x>=0) {
-				for (position.y=cursor_pos.y-range ; position.y<=cursor_pos.y+range; position.y+=1) {
-					if (0<=position.y && position.y<arena_size.row) {
+			position.x = cursor_pos.x - range;
+			if (position.x>=0)
+			{
+				for (position.y = cursor_pos.y - range ; position.y<=cursor_pos.y + range; position.y += 1)
+				{
+					if (0<=position.y && position.y<arena_size.row)
+					{
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
 			}
 			//colonne gauche
-			position.x=cursor_pos.x+range;
-			if (position.x<arena_size.col) {
-				for (position.y=cursor_pos.y-range ; position.y<=cursor_pos.y+range; position.y+=1) {
-					if (0<=position.y && position.y<arena_size.row) {
+			position.x = cursor_pos.x + range;
+			if (position.x<arena_size.col)
+			{
+				for (position.y = cursor_pos.y - range ; position.y<=cursor_pos.y + range; position.y += 1)
+				{
+					if (0<=position.y && position.y<arena_size.row)
+					{
 						compose_disp_pix(pixel, COMPOSE_BACK, position);
 					}
 				}
@@ -287,7 +309,7 @@ void    blink_cursor(void)
 
 void    move_cursor(DIRECTION dir, bool fast)
 {
-if(fast)
+	if(fast)
 	{
 		// Si on veut bouger vite, on bouge 5 fois vers dir
 		for (int i=0; i<4; i++) {
@@ -296,7 +318,7 @@ if(fast)
 	}
 	hide_cursor();
 	coordonee_t new_pos = neighbor_of(cursor_pos, dir);
-	
+
 	//on ne peut intentionelement pas séléctionner la première ligne, pour que les mobs puisse spawn
 	if (new_pos.x>0)
 	{
@@ -460,14 +482,150 @@ void    update_pathfinder_from(coordonee_t position)
 	}// fin du while
 }
 
+// Affiche le menu du jeu et renvoie la difficulté sélectionnée
+uint32_t    game_menu()
+{
+	uint32_t half_width  = termsize.col / 2;
+	uint32_t half_height = termsize.row / 2;
+
+	char control_text[300];
+	sprintf(
+		control_text,
+		"          %c%c%c%c - To move cursor\n"
+		"  Shift + %c%c%c%c - To move cursor fast\n"
+		"             %c - Construction menu\n"
+		"            %c%c - Menu navigation\n"
+		"           %c/%c - Menu OK\n"
+		"             %c - Menu exit\n"
+		"     Shift + %c - Builds last used\n"
+		"      Ctrl + c - Exit\n",
+		KEY_UP,
+		KEY_LEFT,
+		KEY_DOWN,
+		KEY_RIGHT,
+		KEY_UP,
+		KEY_LEFT,
+		KEY_DOWN,
+		KEY_RIGHT,
+		KEY_BUILD,
+		KEY_UP,
+		KEY_DOWN,
+		KEY_BUILD,
+		KEY_RIGHT,
+		KEY_LEFT,
+		KEY_LEFT
+		);
+
+	compose_disp_text(
+		control_text,
+		COL_CYAN,
+		COL_DEFAULT,
+		COMPOSE_UI,
+		(coordonee_t){ .x = half_width - 19, .y = half_height + 3 },
+		(coordonee_t){ .x = 40, .y = 8 }
+		);
+
+	compose_disp_rect(
+		COL_GRAY_DARK,
+		COMPOSE_BACK,
+		(coordonee_t){ 0, 0 },
+		(coordonee_t){ termsize.col, termsize.row }
+		);
+
+	const char *title = "$ TERMINAL DEFENSE";
+	char play_text[100];
+	sprintf( play_text, "PRESS %c TO PLAY", toupper(KEY_RIGHT) );
+
+
+	compose_disp_text(
+		title,
+		COL_GREEN,
+		COL_DEFAULT,
+		COMPOSE_UI,
+		(coordonee_t){ half_width - strlen(title) / 2, half_height - 6 },
+		(coordonee_t){ .x = strlen(title), .y = 1 }
+		);
+
+	compose_disp_text(
+		play_text,
+		COL_YELLOW,
+		COL_DEFAULT,
+		COMPOSE_UI,
+		(coordonee_t){ half_width - strlen(play_text) / 2, half_height },
+		(coordonee_t){ .x = strlen(play_text), .y = 1 }
+		);
+
+	char input;
+	int32_t selected_difficulty_index = 0;
+
+	while(true)
+	{
+		while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+		{
+			if(input == KEY_DOWN)
+			{
+				selected_difficulty_index = max(selected_difficulty_index - 1, 0);
+			}
+			if(input == KEY_UP)
+			{
+				selected_difficulty_index = min(selected_difficulty_index + 1, DIFFICULTY_LEVEL_COUNT - 1);
+			}
+			if(input == KEY_LEFT || input == '\x3')
+			{
+				exit(130);
+			}
+			if(input == KEY_RIGHT)
+			{
+				compose_del_area(
+					COMPOSE_UI,
+					(coordonee_t){ 0,0 },
+					(coordonee_t){ .x = termsize.col-1, .y = termsize.row-1 }
+					);
+				// Quitte le menu
+				return difficulty_levels[selected_difficulty_index].difficulty_value;
+			}
+		}
+		char text[100];
+		sprintf(text, "Chose difficulty ( with %c and %c ) : ", KEY_UP, KEY_DOWN);
+
+		uint32_t txt_center = half_width - ( strlen(text) + 8 ) / 2;
+
+		compose_del_area(
+			COMPOSE_UI,
+			(coordonee_t){ .x = 0, .y = half_height - 3 },
+			(coordonee_t){ .x = termsize.col, .y = half_height - 3 }
+			);
+
+		compose_disp_text(
+			text,
+			COL_TEXT,
+			COL_DEFAULT,
+			COMPOSE_UI,
+			(coordonee_t){ txt_center, half_height - 3 },
+			(coordonee_t){ .x = strlen(text), .y = 1 }
+			);
+
+		compose_disp_text(
+			difficulty_levels[selected_difficulty_index].difficulty_name,
+			difficulty_levels[selected_difficulty_index].display_color,
+			COL_DEFAULT,
+			COMPOSE_UI,
+			(coordonee_t){ txt_center + strlen(text), half_height - 3 },
+			(coordonee_t){ .x = strlen(difficulty_levels[selected_difficulty_index].difficulty_name), .y = 1 }
+			);
+
+		compose_refresh();
+	}
+}
+
 /******************
  ***MOTEUR DE JEU***
  *******************/
 void    sig_handler(int _)
 {
-	//to avoid unused parametter warning
+	//Pour éviter les warning d'arguments inutilisés
 	(void)_;
-	//to avoid crashlooping
+	// Pour éviter un boucle de crash
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGTERM, SIG_DFL);
@@ -477,65 +635,43 @@ void reinit_game(void){
 	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
 	//reinit les defenses
 	memset(defense_array, 0, sizeof(defense_t)*arena_size.row*arena_size.col);
+	//position des mobs
+	memset(monster_positions, (long int)NULL, sizeof(monster_t *) * arena_size.row * arena_size.col);
+
 	//reinit l'affichage
 	compose_del_area(COMPOSE_UI, (coordonee_t){0,0}, (coordonee_t){termsize.col-1,termsize.row-1});
 	compose_del_area(COMPOSE_ARENA, (coordonee_t){0,0}, (coordonee_t){termsize.col-1,termsize.row-1});
+	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
 	//reinit les mobs
-	monster_pool_create(200);	
+	monster_pool_create(200);
 
 	joueur_ressources     = 3000;
 	joueur_score          = 0;
 
 	cursor_pos = base_coordinate;
 	path_reinit();
-	build_defense(&la_base);
-	derniere_construction = NULL;
 
 	game_state = GAME_PLAYING;
 	turn       = 1;
 
-
 }
 
-void main_menu(void){
+void menu_loop(void){
 	while (true) {
 		reinit_game();
-		compose_disp_text("Bienvenue sur Terminal Defense!\n\n"
-		                  "Entrez un chiffre pour lancer le jeu avec la difficulte correspondante\n"
-		                  "(1: Tres facile,8+: Difficile 0=10: Tres difficile\n\n"
-						  , COL_TEXT, COL_DEFAULT, COMPOSE_UI,
-		                  (coordonee_t){0,termsize.row/2-2}, (coordonee_t){termsize.col-1,termsize.row/2-1});
-		int difficulty=-1;
-		compose_refresh();
-		while (difficulty==-1) {
-			char input;
-			while ( read(STDIN_FILENO, &input, 1)==0 ) // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
-			{
-				td_wait(100);
-			}
-			if (input==KEY_QUIT) {
-				EXIT_MSG="Quiting!";
-				exit(0);
-			}
-			if ('0'<=input&&input<='9') { //on a appuyé sur un chiffre
-				difficulty=(int)(input-'0'); //obtient le chiffre en question
-				if (difficulty==0) {
-					difficulty=10;
-				}
-			}
-		}//fin du while difficulty==0
-		//on cache le texte de bienvenue
-		compose_del_area(COMPOSE_UI, (coordonee_t){0,termsize.row/2-2},(coordonee_t){termsize.col-1,termsize.row-1});
 		//on commence avec plus de ressources quand c'est facile:
+		int difficulty=game_menu();
+	build_defense(&la_base);
+	derniere_construction = NULL;
 		joueur_ressources+=3000/difficulty;
 		//on lance le jeu
 		main_loop(difficulty);
 		//vous êtes mort!
 		compose_disp_text(
-				"Vous etes mort!\n"
-				"r: recommencer\n"
-				"q: quitter",
-				COL_RED, COL_BLACK, COMPOSE_UI, (coordonee_t){arena_size.col/2-10,arena_size.row-1}, (coordonee_t){20,3});
+			"Vous etes mort!\n"
+			"r: recommencer\n"
+			"q: quitter",
+			COL_RED, COL_BLACK, COMPOSE_UI, (coordonee_t){arena_size.col/2-10,arena_size.row/2-1}, (coordonee_t){20,3});
 		compose_refresh();
 		char input='\0';
 		while (input!='r') {
@@ -556,15 +692,19 @@ int    main()
 	//***setup initial***
 
 	init_graphical();
+
 	//restaure l'état du terminal en cas de crash
+	// La fonction signal permet d'executer du code lors d'un "signal"
+	// C'est une fonction du système d'exploitation qui permet d'alerter un programe
+	// Lorsque le programme crashe, on veut retablir l'état normal du terminal
 	signal(SIGSEGV, sig_handler);
 	signal(SIGTERM, sig_handler);
+
 	//renseigne la fonction a éxécuter a la sortie du programme
 	atexit(cleanup);
 
 	//initialize randomness using system time
 	srand( (unsigned int)time(NULL) );
-
 
 	//*initialise les variables globales*
 	//creation du background
@@ -574,8 +714,8 @@ int    main()
 	arena_size.row    = termsize.row;
 
 	//initialisation du background avec son patterne
-	background.size=arena_size;
-	background.data=safe_malloc(sizeof(pixel_t)*background.size.row*background.size.col);
+	background.size = arena_size;
+	background.data = safe_malloc(sizeof(pixel_t) * background.size.row * background.size.col);
 	pixel_t pixel = (pixel_t)
 	{
 		.c1    = ' ',            //le caractères étant un simple ascii (un espace),
@@ -594,10 +734,10 @@ int    main()
 			{
 				pixel.background_color = COL_BOARD_BACKGROUND_2;
 			}
-			background.data[i+j*background.size.stride]=pixel;
+			background.data[i + j * background.size.stride] = pixel;
 		}
 	}
-	compose_disp_pict(background, COMPOSE_BACK, (coordonee_t){0,0});
+
 	//initialisation de la colonne de droite
 	pixel.background_color = COL_WHITE;
 	for (int j = 0; j<termsize.row; j++)
@@ -622,9 +762,9 @@ int    main()
 	}
 
 
+	monster_pool_create(200);
 	//creation (et initialisation a zero) de monster_position
 	monster_positions = safe_malloc(sizeof(monster_t *) * arena_size.row * arena_size.col);
-	memset(monster_positions, (long int)NULL, sizeof(monster_t *) * arena_size.row * arena_size.col);
 	//autre variables globales
 	defense_array    = safe_malloc( arena_size.col * arena_size.row * sizeof(defense_t) );
 	pathfinder_array = safe_malloc( arena_size.col * arena_size.row * sizeof(pathfinder_data) );
@@ -635,6 +775,7 @@ int    main()
 		.x = arena_size.col - 1,
 		.y = arena_size.row / 2,
 	};
+
 
 
 	//vie du joueur == vie de la base
@@ -650,8 +791,10 @@ int    main()
 
 	EXIT_MSG = "Crashing whithout more precision while game was running";
 
-	main_menu();
-	EXIT_MSG = "Quited!";
+	//on lance le jeu
+	menu_loop();
+	EXIT_MSG = "You died!";
+
 	return EXIT_SUCCESS;
 }
 
@@ -744,7 +887,7 @@ void    fast_build(void)
 //construit une defense a la position du curseur
 void    build_defense(const defense_type_t   *defense_type)
 {
-	derniere_construction = defense_type;
+	    derniere_construction = defense_type;
 	if (joueur_ressources<defense_type->cost)
 	{
 		//not enough resources
@@ -995,7 +1138,7 @@ void    monsters_routine(void)
 void    randomly_spawn_mobs(int difficulty)
 {
 	//TODO: improve, this is realy crude
-	if (rand() % 10 ==0)
+	if (rand() % 10 == 0)
 	{
 		int borne_sup = rand() % turn;
 		for (int i = 1; i * i * i * i<borne_sup; i += 15 / difficulty + 1)
@@ -1104,7 +1247,7 @@ void    damage_monster(monster_t **monster_ptr, int32_t damage)
 
 void    right_column_refresh(void)
 {
-	coordonee_t box_size =
+		coordonee_t box_size =
 	{
 		.x = reserved - 1, .y = 1
 	};
@@ -1115,7 +1258,7 @@ void    right_column_refresh(void)
 	compose_del_area(
 		COMPOSE_ARENA,
 		position,
-		(coordonee_t){ .x = termsize.col -1, .y = termsize.row - 1 }
+		(coordonee_t){ .x = termsize.col - 1, .y = termsize.row - 1 }
 		);
 	char text[50];
 	//PRId64 est une macro pour print les int64_t (ld ou lld selon les systèmes)
@@ -1137,7 +1280,7 @@ void    right_column_refresh(void)
 	position.y += 1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
-	position.y += 3;
+	    position.y += 3;
 	box_size.y  = 3;
 	//si on est en train de construire une défense, on affiche son texte
 	if (game_state==GAME_SELECT_DEF)
@@ -1294,8 +1437,8 @@ void    monster_pool_expand(uint32_t expand_size)
 // Creates and initialized the pool of all monsters
 void    monster_pool_create(uint32_t pool_size)
 {
-	//free une eventuelle mémoire précédente
-	monster_pool_destroy();
+	    //free une eventuelle mémoire précédente
+	    monster_pool_destroy();
 	// Allocate the memory to store the monsters
 	monster_pool_expand(pool_size);
 }

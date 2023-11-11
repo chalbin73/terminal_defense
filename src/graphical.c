@@ -311,7 +311,7 @@ void    txt_to_img(picture_t result, const char *text_to_display, COLOR text_col
         .color            = text_color
     };
     coordonee_t pos;
-    int32_t counter=0;
+    int32_t counter = 0;
     for (pos.y = 0; pos.y < result.size.row; pos.y++)
     {
         for (pos.x = 0; pos.x < result.size.col; pos.x++)
@@ -355,6 +355,33 @@ void    compose_free(void)
     free(compositor_pixels);
     compositor_stride = 0;
 }
+
+void    compose_disp_rect(COLOR color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size)
+{
+    pixel_t pix_color =
+    {
+        .color = COL_DEFAULT,
+        .background_color = color,
+        .c1    = ' ',
+        .c2    = '\0',
+    };
+
+    for (int i = 0; i<size.y; i++)
+    {
+        for(int j = 0; j < size.x; j++)
+        {
+            compose_disp_pix(
+                pix_color,
+                rank,
+                (coordonee_t){
+                    .x = j + pos.x,
+                    .y = i + pos.y
+                }
+                );
+        }
+    }
+}
+
 //donne une image au compositeur
 void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos)
 {
@@ -378,6 +405,7 @@ void    compose_disp_pict(picture_t pict, COMPOSE_RANK rank, coordonee_t pos)
         }
     }
 }
+
 void    compose_disp_text(const char *text_to_display, COLOR text_color, COLOR background_color, COMPOSE_RANK rank, coordonee_t pos, coordonee_t size_of_text_box)
 {
     //getting location
@@ -400,6 +428,7 @@ void    compose_disp_pix(pixel_t pixel, COMPOSE_RANK rank, coordonee_t pos)
     compositor_pixels[pos.x + pos.y * termsize.stride + rank * compositor_stride] = pixel;
     compose_have_changed(pos);
 }
+
 //calcule les changements a la position demandée
 void    compose_have_changed(coordonee_t    pos)
 {

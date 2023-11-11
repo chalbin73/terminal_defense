@@ -74,7 +74,7 @@ typedef struct
     uint          cost;
     uint          max_life;
     uint          damage;
-    int          range;
+    int           range;
     const char   *short_txt;
     const char   *desc_txt;
 
@@ -110,6 +110,14 @@ typedef struct
     uint64_t     distance;
     DIRECTION    next;
 } pathfinder_data;
+
+// Represente un niveau de difficulté (facile-moyen-difficile)
+typedef struct
+{
+    const   char       *difficulty_name;
+    COLOR       display_color;
+    uint32_t    difficulty_value;
+} difficulty_level;
 
 /***********************************
  ***FONCTIONS UTILITAIRES DE BASES***
@@ -198,7 +206,7 @@ void           clear_input(void);
 // @brief bouge le curseur dans la direction demandée
 void           move_cursor(DIRECTION dir, bool fast);
 // @brief affiche l'overlay de range
-void display_range_overlay(void);
+void           display_range_overlay(void);
 //update l'affichage de la colonne de status (droite de l'écran)
 void           right_column_refresh(void);
 
@@ -218,8 +226,10 @@ void           update_pathfinder_from(coordonee_t    position);
 
 // @brief setup initial
 int            main(void);
+// @brief relance le menu quand on meurt
+void    menu_loop(void);
 // @brief menu principal
-void    main_menu(void);
+uint32_t    game_menu(void);
 // @brief clear tout et remet en place pour une nouvelle partie
 void reinit_game(void);
 //
@@ -339,4 +349,7 @@ extern const defense_type_t la_base;
 
 extern const picture_t frame;
 extern const defence_choice_tree_t main_selection_tree;
+
+#define DIFFICULTY_LEVEL_COUNT 4
+extern const difficulty_level difficulty_levels[DIFFICULTY_LEVEL_COUNT];
 
