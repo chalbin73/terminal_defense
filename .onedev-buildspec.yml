@@ -1,0 +1,17 @@
+version: 21
+jobs:
+- name: push to github
+  steps:
+  - !PushRepository
+    name: Github push
+    remoteUrl: https://github.com/chalbin73/terminal_defense.git
+    userName: chalbin73
+    passwordSecret: github
+    force: false
+    condition: ALL_PREVIOUS_STEPS_WERE_SUCCESSFUL
+  triggers:
+  - !BranchUpdateTrigger {}
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
