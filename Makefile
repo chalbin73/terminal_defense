@@ -4,8 +4,8 @@ WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
             -Wstrict-prototypes
 			#-Wconversion
 
-CFLAGS=-std=c99 $(WARNINGS) -Isrc/ 
-LDFLAGS=${WARNINGS}
+CFLAGS=-std=c99 $(WARNINGS) -fsanitize=address -Isrc/ 
+LDFLAGS=${WARNINGS} -fsanitize=address
 
 RELEASE_FLAGS=-O3
 DEBUG_FLAGS=-ggdb -g3 -O0 -fno-inline

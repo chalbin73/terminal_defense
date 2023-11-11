@@ -1,12 +1,12 @@
 # TerminalDefense
 ## un Tower Defense en terminal
 
-Un tower defense en terminal, codé en C, sans dépandences externes (a part quelques librairies standard).
+Un tower defense en terminal, codé en C, sans dépendences externes (a part la librairie standard c).
 
 ## Build instruction
 ### Tous systèmes (incluant Windows/linux)
-il est possbile de tester le jeu sans l'installer a l'aide de ssh (demande une connexion internet):
- - en commande `ssh -4Cp 389 insecure@mwaaa.fr`
+Il est possbile de tester le jeu sans l'installer a l'aide de ssh (demande une connexion internet):
+ - En commande `ssh -4Cp 389 insecure@mwaaa.fr`
     Il vous serra demandé, la première fois, d'accepter une clé ssh (répondez oui ou yes, selon la langue)
  - avec un client ssh, renseignez les informations suivantes
    - Adresse: mwaaa.fr
@@ -21,20 +21,20 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Installez `make` et un compilateur C (par ex `gcc`)
     Ceux ci sont généralement disponible dans le paquet `base-devel`
  - Téléchargez touts les fichier du projet (`git clone https://github.com/chalbin73/terminal_defense`)
- - allez dans le répertoire du projet (`cd terminal_defense`)
- - si vous le souhaitez, modifiez les raccourcis claviers dans le fichier `src/config.h`
+ - Allez dans le répertoire du projet (`cd terminal_defense`)
+ - Si vous le souhaitez, modifiez les raccourcis claviers dans le fichier `src/config.h`
  - Compilez en lancant `make` dans le dossier du projet, cela crée le fichier executable `terminal_defense` (lancable avec `./terminal_defense`)
 
 ### Windows
  Voici les différente possibilité, du plus facile au plus compliqué
- - utilisez la version ssh (pour tester la compilation, vous pouvez aller sur caséine, mais lancer le programme dessus est fortement déconséillé)
- - vous avez déja wsl/une vm linux: suivez les instruction de build linux en l'utilisant
- - installez make et gcc sur windows a l'aide de cygiwin ou autre équivalent, puis suivez les instruction de build linux (non tésté, peut ne pas fonctionner)
+ - Utilisez la version ssh (pour tester la compilation, vous pouvez aller sur caséine, mais lancer le programme dessus est fortement déconséillé)
+ - Vous avez déja wsl/une vm linux: suivez les instruction de build linux en l'utilisant
+ - Installez make et gcc sur windows a l'aide de cygiwin ou autre équivalent, puis suivez les instruction de build linux (non tésté, peut ne pas fonctionner)
  /!\ Le fonctionnement n'a jamais été testé sur Windows, il n'est pas garanti
 
 ## Tester le programme
 
-1) Le terminal dans lequel est lancé le jeu ne doit pas être changé de taille une fois le jeu lancé, mettez donc votre terminal
+1) Le terminal dans lequel est lancé le jeu ne doit pas changer de taille une fois le jeu lancé, mettez donc votre terminal
     a la taille souhaité pour jouer avant de lancer le jeu (pour une experience optimale, mettez vous en plein écran)
     (un fonctionement minimal requiert une taille de plus de 30*20 charactères, des bugs graphiques peuvent apparaitre en dessous)
 
@@ -44,13 +44,13 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
     également modifié)
    
 3) Lancez le jeu
- - si vous avez compilé, l'executable se nomme terminal_defense et peut se lancer avec la commande `./terminal_defense` dans le dossier du jeu
- - si vous utilisez la version ssh, relancer simplement la commande ssh ( ` ssh -4Cp 389 insecure@mwaaa.fr ` )
+ - Si vous avez compilé, l'executable se nomme terminal_defense et peut se lancer avec la commande `./terminal_defense` dans le dossier du jeu
+ - Si vous utilisez la version ssh, relancer simplement la commande ssh ( ` ssh -4Cp 389 insecure@mwaaa.fr ` )
 
 4) Survivez!
  - Les monstres (les flèches a gauche de l'écran) tentent d'atteindre et de détruire vôtre base (le drapeau a droite de l'écran)
  - Pour les en empécher, construisez des défenses (murs et tourelles)
- - le jeu se termine lorsque vous mourez (vie de la base a 0),
+ - Le jeu se termine lorsque vous mourez (vie de la base a 0),
  que le jeu crash (ca n'arrive pas, normalement) ou que vous quittez le jeu avec le raccourcis clavier
 
 # Controles
@@ -60,7 +60,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
   - séléction avec les touche de déplacement
   - annulation avec déplacement a gauche
   - validation avec déplacment a droite/touche de construction
-* Maj aintenu: construit la dernière défence construite (pas de séléction)
+* Maj maintenu: construit la dernière défence construite (pas de séléction)
 * Ctrl+c: Quitter le programme
 
 # Ce qui fonctionne/ne fonctionne pas
@@ -69,7 +69,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Les monstres se déplacent vers la base, détruisant ou contournant les obstacles sur leur passage
  - Les tourrelles tirent sur les monstres, permétant de les tuer
  - La mort des monstre permet de gagner des ressources de construction ainsi que du score
- - Les constructions illégales (sur une autre/manque de ressources) sont impossible
+ - Les constructions illégales (sur une autre/manque de ressources) sont impossibles
 ### Le menu:
  - On peut choisir sa difficulté
  - On peut relancer une partie lorsque l'on meurt
@@ -80,7 +80,7 @@ NB: Cette solution est mise a disposition car le programme fonctionne très mal 
  - Code non tésté
 
 ### Le jeu sur caséine
-Le code compile et se lance, cepandant
+Le code compile et se lance, cependant
  - L'affichage est moche
   - Fines bandes noires entre chaque charactères
   - Décalage des lignes (police non monospace)
