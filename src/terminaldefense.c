@@ -222,7 +222,7 @@ void    display_range_overlay(void)
 		(coordonee_t){ 0, 0 }
 		);
 	const defense_type_t *type = defense_array[offset_of(cursor_pos, arena_size.stride)].type;
-	if (type!=NULL)
+	if (type!=NULL)//si il y a une tourelle
 	{
 		int range = type->range;
 		if (range>0)
@@ -623,7 +623,7 @@ uint32_t    game_menu()
 /******************
  ***MOTEUR DE JEU***
  *******************/
-void    sig_handler(int _)
+void    sig_handler(int _)//est appelé si le jeu crash/qu'on le KILL
 {
 	//Pour éviter les warning d'arguments inutilisés
 	(void)_;
@@ -631,7 +631,7 @@ void    sig_handler(int _)
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGTERM, SIG_DFL);
-	exit(1);
+	exit(1);//cleanup va clean vu qu'on exit proprement
 }
 void reinit_game(void){
 
@@ -959,16 +959,19 @@ void    display_defense_selection_item(pixel_t icon, const char *text, bool is_c
 {
 	int32_t posx = termsize.col - reserved + 1; //a gauche de la barre de droite
 	int32_t posy = termsize.row - indice * 3 - 3; //en bas, par pas de 3 (taille d'un icone)
+	//on affiche la frame
 	compose_disp_pict(
 		frame,
 		COMPOSE_UI,
 		(coordonee_t){ posx, posy }
 		);
+	//et l'icone au centre de la frame
 	compose_disp_pix(
 		icon,
 		COMPOSE_UI,
 		(coordonee_t){ posx + 1, posy + 1 }
 		);
+	//et le texte de déscription
 	compose_disp_text(
 		(char *)text,
 		is_category ? COL_GREEN : COL_BLUE,
@@ -982,13 +985,14 @@ void    display_defense_selection_item(pixel_t icon, const char *text, bool is_c
 // Affiche le menu de selection de defense
 void    display_selection(void)
 {
+	//on affiche les sous_catégories
 	uint32_t indice = 0;
 	for(int i = 0; i < shown_tree->sub_category_count; i++)
 	{
 		display_defense_selection_item(shown_tree->sub_categories[i]->icon, shown_tree->sub_categories[i]->short_txt, true, indice);
 		indice += 1;
 	}
-
+	//puis les défenses
 	for(int i = 0; i < shown_tree->defense_count; i++)
 	{
 		display_defense_selection_item(shown_tree->defenses[i]->sprite, shown_tree->defenses[i]->short_txt, false, indice);
@@ -1154,7 +1158,6 @@ void    monsters_routine(void)
 }
 void    randomly_spawn_mobs(int difficulty)
 {
-	//TODO: improve, this is realy crude
 	if (rand() % 10 == 0)
 	{
 		int borne_sup = rand() % turn;
@@ -1167,7 +1170,7 @@ void    randomly_spawn_mobs(int difficulty)
 			};
 			const monster_type_t *type;
 			//avoid spawning runner in to early game
-			if (turn<100)
+			if (turn<800/(uint64_t)difficulty)
 			{
 				type = &armored;
 			}
@@ -1192,7 +1195,7 @@ void    damage_defense(coordonee_t target_position, uint32_t damage)
 {
 	defense_t *target = &defense_array[offset_of(target_position, arena_size.stride)];
 
-	//si la défence passe un pas de 100 de vie, le pathfinder doit etre update, on stocke donc la vie précédente
+	//on update le pathfinder tout les pas de 100 de vie, on stocke donc la vie précédente
 	int32_t previous_life = target->life;
 	int32_t new_life      = previous_life - damage;
 
@@ -1207,17 +1210,19 @@ void    damage_defense(coordonee_t target_position, uint32_t damage)
 
 	if (previous_life / 100!=new_life / 100)
 	{
-		//la vie a suffisament changée, on update le patfinder
+		//la vie a suffisament changée, on update le pathfinder
 		update_pathfinder_from(target_position);
 	}
 }
 void    defenses_routine(void)
 {
+	//pour chaque position de défense
 	coordonee_t position;
 	for (position.x = 0; position.x<arena_size.col; position.x++)
 	{
 		for (position.y = 0; position.y<arena_size.row; position.y++)
 		{
+			//si il y en a une, on fait sa routine
 			if (defense_array[offset_of(position, arena_size.stride)].type!=NULL)
 			{
 				single_defense_routine(position);
@@ -1255,6 +1260,7 @@ void    single_defense_routine(coordonee_t defense_position)
 }
 void    damage_monster(monster_t **monster_ptr, int32_t damage)
 {
+	//on retire les dégats a sa vie, puis on le tue si sa vie passe en dessous de 0
 	(*monster_ptr)->vie -= damage;
 	if ( (*monster_ptr)->vie<=0 )
 	{
@@ -1272,6 +1278,7 @@ void    right_column_refresh(void)
 	{
 		.x = termsize.col - reserved + 1, .y = 0
 	};
+	//on retire l'affichage précédent
 	compose_del_area(
 		COMPOSE_ARENA,
 		position,
@@ -1280,17 +1287,23 @@ void    right_column_refresh(void)
 	char text[50];
 	//PRId64 est une macro pour print les int64_t (ld ou lld selon les systèmes)
 	//PRIu64 our les unsigned
+	
+	//label
 	sprintf(text, "%" PRId64, *joueur_vie);
 	compose_disp_text("vie de la base:", COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	//vie
 	position.y += 1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
 	position.y += 2;
+	//label
 	sprintf(text, "%" PRIu64, joueur_ressources);
 	compose_disp_text("ressources:", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+	//ressources
 	position.y += 1;
 	compose_disp_text(text, COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 
+	//...
 	position.y += 2;
 	sprintf(text, "%" PRIu64, joueur_score);
 	compose_disp_text("score:", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
@@ -1303,7 +1316,7 @@ void    right_column_refresh(void)
 	if (game_state==GAME_SELECT_DEF)
 	{
 		if (sel_index<shown_tree->sub_category_count)
-		{
+		{  //description dans le cas des sous-catégories
 			compose_disp_text(
 				shown_tree->sub_categories[sel_index]->desc_txt,
 				COL_TEXT,
@@ -1312,7 +1325,7 @@ void    right_column_refresh(void)
 				position,
 				box_size
 				);
-			//ainsi que les contrôles clavier (si on a la place)
+			//ainsi que les contrôles clavier (si on a la place) (il seront caché par le menu construction sinon)
 			position.y+=3;
 			sprintf(text, "%c :annuler\n"
 			        "%c/%c :valider",KEY_LEFT,KEY_RIGHT,KEY_BUILD);
@@ -1323,7 +1336,7 @@ void    right_column_refresh(void)
 
 		}
 		else
-		{
+		{  //description des défenses: caractéristiques et texte
 			defense_type_t selected_def_type = *shown_tree->defenses[sel_index - shown_tree->sub_category_count];
 			sprintf(text, "cout: %u", selected_def_type.cost);
 			compose_disp_text(text, COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
@@ -1367,7 +1380,7 @@ void    right_column_refresh(void)
 		}
 		else
 		{
-			compose_disp_text("no defense under cursor", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
+			compose_disp_text("pas de defense ici", COL_TEXT, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
 		}
 		//ainsi que les contrôles claviers
 		position.y+=4;
@@ -1391,7 +1404,7 @@ void    toogle_pause(void)
 	if (game_state==GAME_PAUSED)
 	{
 		game_state = GAME_PLAYING;
-		//la ou on avait affiché jeu en pause
+		//on cache la ou on avait affiché "jeu en pause"
 		compose_del_area(
 			COMPOSE_UI,
 			pos_of_text,
@@ -1413,7 +1426,7 @@ void    toogle_pause(void)
 			//au centre de l'ecran
 			pos_of_text,
 			(coordonee_t){ 13, 3 }
-			);
+		);
 	}
 }
 

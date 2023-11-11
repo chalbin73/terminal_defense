@@ -29,7 +29,7 @@ typedef enum
     DIR_LEFT   = 1,
     DIR_UP     = 2,
     DIR_DOWN   = 3,
-    DIR_NOWHERE=4,//valeur spéciale, indiquant un manque d'information
+    DIR_NOWHERE= 4,//valeur spéciale, indiquant un manque d'information
 } DIRECTION;
 
 // Represent l'état du jeu
@@ -49,13 +49,13 @@ typedef struct
     //en frame/cases
     //+ élevé = plus lent
     uint       speed;
-    //damage/frame
+    //dégats/frame
     uint       damage;
     uint       given_ressources;
 
 } monster_type_t;
 
-// Represente un monstre physique dans le monde du jeu (type de monstre + l'état actuel: positon, vie ...)
+// Represente un monstre physique dans le monde du jeu (type de monstre + l'état actuel: vie, ...)
 typedef struct monster_t
 {
     const monster_type_t   *type;
@@ -111,7 +111,7 @@ typedef struct
     DIRECTION    next;
 } pathfinder_data;
 
-// Represente un niveau de difficulté (facile-moyen-difficile)
+// Represente un niveau de difficulté (facile-moyen-difficile-hardcore)
 typedef struct
 {
     const   char       *difficulty_name;
@@ -154,7 +154,7 @@ void           sig_handler(int    _);
  * @param neighbor direction du voisin demandé
  * @return les coordonée du voisin (si il existe)
  *
- * @note renvoie NO_COORDINATE si le voisin n'éxsite pas
+ * @note renvoie NO_COORDINATE (-1,0) si le voisin n'éxsite pas
  */
 coordonee_t    neighbor_of(coordonee_t coo, DIRECTION neighbor);
 
