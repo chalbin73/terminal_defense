@@ -71,6 +71,9 @@ int32_t    min(int32_t a, int32_t b);
 //renvoie l'argument le plus grand
 int32_t    max(int32_t a, int32_t b);
 
+// Rammène v dans l'intervale min-max
+int32_t clamp(int32_t v, int32_t min, int32_t max);
+
 //attend ms milliseconde
 int td_wait(long int ms);
 //attend la prochaine frame

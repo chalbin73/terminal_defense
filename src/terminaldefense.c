@@ -482,6 +482,143 @@ void    update_pathfinder_from(coordonee_t    position)
     }// fin du while
 }
 
+// Affiche le menu du jeu et renvoie la difficulté sélectionnée
+uint32_t    game_menu()
+{
+    uint32_t half_width  = termsize.col / 2;
+    uint32_t half_height = termsize.row / 2;
+
+    char control_text[300];
+    sprintf(
+        control_text,
+        "          %c%c%c%c - To move cursor\n"
+        "  Shift + %c%c%c%c - To move cursor fast\n"
+        "             %c - Construction menu\n"
+        "            %c%c - Menu navigation\n"
+        "           %c/%c - Menu OK\n"
+        "             %c - Menu exit\n"
+        "     Shift + %c - Builds last used\n"
+        "      Ctrl + c - Exit\n",
+        KEY_UP,
+        KEY_LEFT,
+        KEY_DOWN,
+        KEY_RIGHT,
+        KEY_UP,
+        KEY_LEFT,
+        KEY_DOWN,
+        KEY_RIGHT,
+        KEY_BUILD,
+        KEY_UP,
+        KEY_DOWN,
+        KEY_BUILD,
+        KEY_RIGHT,
+        KEY_LEFT,
+        KEY_LEFT
+        );
+
+    compose_disp_text(
+        control_text,
+        COL_CYAN,
+        COL_DEFAULT,
+        COMPOSE_UI,
+        (coordonee_t){ .x = half_width - 19, .y = half_height + 3 },
+        (coordonee_t){ .x = 40, .y = 8 }
+        );
+
+    compose_disp_rect(
+        COL_GRAY_DARK,
+        COMPOSE_BACK,
+        (coordonee_t){ 0, 0 },
+        (coordonee_t){ termsize.col, termsize.row }
+        );
+
+    const char *title = "$ TERMINAL DEFENSE";
+    char play_text[100];
+    sprintf( play_text, "PRESS %c TO PLAY", toupper(KEY_RIGHT) );
+
+
+    compose_disp_text(
+        title,
+        COL_GREEN,
+        COL_DEFAULT,
+        COMPOSE_UI,
+        (coordonee_t){ half_width - strlen(title) / 2, half_height - 6 },
+        (coordonee_t){ .x = strlen(title), .y = 1 }
+        );
+
+    compose_disp_text(
+        play_text,
+        COL_YELLOW,
+        COL_DEFAULT,
+        COMPOSE_UI,
+        (coordonee_t){ half_width - strlen(play_text) / 2, half_height },
+        (coordonee_t){ .x = strlen(play_text), .y = 1 }
+        );
+
+    char input;
+    bool show_menu                    = true;
+    int32_t selected_difficulty_index = 0;
+
+    while(show_menu)
+    {
+        while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+        {
+            if(input == KEY_DOWN)
+            {
+                selected_difficulty_index = max(selected_difficulty_index - 1, 0);
+            }
+            if(input == KEY_UP)
+            {
+                selected_difficulty_index = min(selected_difficulty_index + 1, DIFFICULTY_LEVEL_COUNT - 1);
+            }
+            if(input == KEY_LEFT || input == '\x3')
+            {
+                exit(130);
+            }
+            if(input == KEY_RIGHT)
+            {
+                compose_del_area(
+                    COMPOSE_UI,
+                    (coordonee_t){ 0 },
+                    (coordonee_t){ .x = termsize.col, .y = termsize.row }
+                    );
+                // Quitte le menu
+                return difficulty_levels[selected_difficulty_index].difficulty_value;
+            }
+        }
+        char text[100];
+        sprintf(text, "Chose difficulty ( with %c and %c ) : ", KEY_UP, KEY_DOWN);
+
+        uint32_t txt_center = half_width - ( strlen(text) + 8 ) / 2;
+
+        compose_del_area(
+            COMPOSE_UI,
+            (coordonee_t){ .x = 0, .y = half_height - 3 },
+            (coordonee_t){ .x = termsize.col, .y = half_height - 3 }
+            );
+
+        compose_disp_text(
+            text,
+            COL_TEXT,
+            COL_DEFAULT,
+            COMPOSE_UI,
+            (coordonee_t){ txt_center, half_height - 3 },
+            (coordonee_t){ .x = strlen(text), .y = 1 }
+            );
+
+        compose_disp_text(
+            difficulty_levels[selected_difficulty_index].difficulty_name,
+            difficulty_levels[selected_difficulty_index].display_color,
+            COL_DEFAULT,
+            COMPOSE_UI,
+            (coordonee_t){ txt_center + strlen(text), half_height - 3 },
+            (coordonee_t){ .x = strlen(difficulty_levels[selected_difficulty_index].difficulty_name), .y = 1 }
+            );
+
+        compose_refresh();
+    }
+}
+
 /******************
  ***MOTEUR DE JEU***
  *******************/
@@ -519,54 +656,8 @@ int    main()
     srand( (unsigned int)time(NULL) );
 
     // MENU
+    uint32_t game_difficulty = game_menu();
 
-    // Mesure du milieu du terminal
-
-    uint32_t half_width  = termsize.col / 2;
-    uint32_t half_height = termsize.row / 2;
-
-    compose_disp_rect(
-        COL_GRAY_DARK,
-        COMPOSE_BACK,
-        (coordonee_t){ 0, 0 },
-        (coordonee_t){ termsize.col, termsize.row }
-        );
-
-    const char *title      = "$ TERMINAL DEFENSE";
-    const char *diff_label = "Chose difficulty ( with Z and S ) :";
-    char diff_label_num[100];
-
-    compose_disp_text(
-        title,
-        COL_GREEN,
-        COL_DEFAULT,
-        COMPOSE_UI,
-        (coordonee_t){ half_width - strlen(title) / 2, half_height - 5 },
-        (coordonee_t){ .x = strlen(title), .y = 1 }
-        );
-    char input;
-    bool show_menu = true;
-
-
-    while(show_menu)
-    {
-        while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
-        {
-            if(input == 'e')
-            {
-                show_menu = false;
-            }
-        }
-        compose_disp_text(
-            "Chose difficulty ( with Z and S ) : ",
-            COL_TEXT,
-            COL_DEFAULT,
-            COMPOSE_UI,
-            (coordonee_t){ half_width - strlen(title) / 2, half_height - 3 },
-            (coordonee_t){ .x = strlen(title), .y = 1 }
-            );
-        compose_refresh();
-    }
     //*initialise les variables globales*
     //creation du background
     //taille de l'arène
@@ -666,8 +757,9 @@ int    main()
     //on lance le jeu
     game_state = GAME_PLAYING;
     turn       = 1;
-    main_loop(8);
+    main_loop(game_difficulty);
     EXIT_MSG = "You died!";
+
     return EXIT_SUCCESS;
 }
 
@@ -1011,7 +1103,7 @@ void    monsters_routine(void)
 void    randomly_spawn_mobs(int    difficulty)
 {
     //TODO: improve, this is realy crude
-    if (rand() % 10 ==0)
+    if (rand() % 10 == 0)
     {
         int borne_sup = rand() % turn;
         for (int i = 1; i * i * i * i<borne_sup; i += 15 / difficulty + 1)
