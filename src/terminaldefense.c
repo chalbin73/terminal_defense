@@ -22,26 +22,26 @@ uint32_t monster_memories_count = 0;
 uint32_t max_monsters           = 0;
 uint32_t alloced_monsters       = 0;
 
-//associe a chaque case de l'arenne un monstre/une construction.
+//associe à chaque case de l'arène un monstre/une construction.
 //chaque monstre pointe sur les autres monstres dans la même case (liste chainée)
 monster_t **monster_positions;
-//associe a chaque case de l'arenne une défense
+//associe à chaque case de l'arène une défense
 defense_t *defense_array;
-//associe a chaque case de l'arenne une distance de la base et la direction dans laquelle aller
+//associe à chaque case de l'arène une distance de la base et la direction dans laquelle aller
 //pour s'en rapprocher (pathfinding)
 pathfinder_data *pathfinder_array;
-//utilisé par les fonction du pathfinder
-//mais comme c'est un gros tableau, on ne l'alloue qu'une fois au debut
+//utilisé par les fonctions du pathfinder
+//mais comme c'est un gros tableau, on ne l'alloue qu'une fois au début
 coordonee_t *position_list;
-//la taille du tableau ci dessus
+//la taille du tableau ci-dessus
 uint32_t pos_list_size;
-//coordonées de la base
+//coordonnées de la base
 coordonee_t base_coordinate;
 // État du jeu
 GAME_STATE game_state = GAME_STOPED;
-//arbre de séléction des défense actuellement affiché
+//arbre de sélection des défenses actuellement affiché
 const defence_choice_tree_t *shown_tree = NULL;
-// Index selectionné dans le menu
+// Index sélectionné dans le menu
 int32_t sel_index = 0;
 const defense_type_t *derniere_construction;
 
@@ -68,7 +68,7 @@ int32_t        offset_of(coordonee_t coo, int32_t stride)
 	return coo.x + coo.y * stride;
 }
 
-//renvoie les coordonée du voisin (positions dans l'arène)
+//renvoie les coordonées du voisin (positions dans l'arène)
 coordonee_t    neighbor_of(coordonee_t coo, DIRECTION neighbor)
 {
 	switch (neighbor)
@@ -102,7 +102,7 @@ coordonee_t    neighbor_of(coordonee_t coo, DIRECTION neighbor)
 	}
 }
 
-//renvoie la direction opposé
+//renvoie la direction opposée
 DIRECTION    oposite_direction(DIRECTION dir)
 {
 	switch (dir)
@@ -123,7 +123,7 @@ DIRECTION    oposite_direction(DIRECTION dir)
 
 void    cleanup(void)
 {
-	//fonction appellé a la sortie du programme
+	//fonction appelé a la sortie du programme
 
 	//free les variables qui trainent
 	clear_input();
@@ -198,17 +198,17 @@ void    move_monster(monster_t **monster_ptr, coordonee_t objective)
 	//et on fait pointer le monstre sur les autres de la case (on l'insère dans la liste chainée)
 	monster->next_monster_in_room                              = monster_positions[offset_of(objective, arena_size.stride)];
 	monster_positions[offset_of(objective, arena_size.stride)] = monster;
-	//on update l'affichage (celui derière nous sera déja clean
+	//on update l'affichage (celui derrière nous sera déjà clean
 	print_monster(monster, objective);
 }
 
-//enlève tout les inputs claviers non traitées
+//enlève tous les inputs claviers non traitées
 void    clear_input(void)
 {
 	char poubelle[20];
 	while ( read(STDIN_FILENO, poubelle, 20) )
 	{
-		//le but étant de vider stdin, on ne fais rien avec les charactères ...
+		//le but étant de vider stdin, on ne fait rien avec les caractères ...
 	}
 }
 
@@ -222,7 +222,7 @@ void    display_range_overlay(void)
 		(coordonee_t){ 0, 0 }
 		);
 	const defense_type_t *type = defense_array[offset_of(cursor_pos, arena_size.stride)].type;
-	if (type!=NULL)//si il y a une tourelle
+	if (type!=NULL)//s'il y a une tourelle
 	{
 		int range = type->range;
 		if (range>0)
@@ -319,7 +319,7 @@ void    move_cursor(DIRECTION dir, bool fast)
 	hide_cursor();
 	coordonee_t new_pos = neighbor_of(cursor_pos, dir);
 
-	//on ne peut intentionelement pas séléctionner la première ligne, pour que les mobs puisse spawn
+	//on ne peut intentionnellement pas sélectionner la première ligne, pour que les mobs puissent spawn
 	if (new_pos.x>0)
 	{
 		cursor_pos = new_pos;
@@ -328,7 +328,7 @@ void    move_cursor(DIRECTION dir, bool fast)
 	display_range_overlay();
 }
 /*** PATHFINDER ***/
-// (re) initilaise le pathfinder array
+// (re)initialise le pathfinder array
 void    path_reinit(void)
 {
 	for (int i = 0; i<arena_size.col * arena_size.row; i++)
@@ -340,15 +340,15 @@ void    path_reinit(void)
 		};
 	}
 }
-//update le pathfinder a partir de la position demandée
+//update le pathfinder à partir de la position demandée
 void    update_pathfinder_from(coordonee_t position)
 {
-	//indice déja traité
+	//indice déjà traité
 	uint borne_inf = 0;
-	//indice jusqu' auquel la liste est remplie
+	//indice jusqu'auquel la liste est remplie
 	uint borne_sup = 0;
 
-	//la ou nous a demander d'update
+	//là ou nous à demandé d'update
 	position_list[0]                                              = position;
 	pathfinder_array[offset_of(position, arena_size.stride)].next = DIR_NOWHERE;
 
@@ -356,17 +356,17 @@ void    update_pathfinder_from(coordonee_t position)
 	pathfinder_data here_before;
 	pathfinder_data here_after;
 
-	//tant qu'il reste des case a traiter
+	//tant qu'il reste des cases à traiter
 	while ( borne_inf!=borne_sup + 1 && !( borne_inf == pos_list_size && borne_sup==0 ) )
 	{
-		//position de la case a traiter
+		//position de la case à traiter
 		position = position_list[borne_inf];
-		//indice dans les tableau
+		//indice dans les tableaus
 		here_before = pathfinder_array[offset_of(position, arena_size.stride)];
 
 		if (here_before.next!=DIR_NOWHERE)
 		{
-			//cette position a déja été update (présente plusieurs fois dans la liste), on skip
+			//cette position a déjà été update (présente plusieurs fois dans la liste), on skip
 			borne_inf++;
 			if (borne_inf==pos_list_size)
 				borne_inf = 0;
@@ -396,13 +396,13 @@ void    update_pathfinder_from(coordonee_t position)
 				if (neighbor.x!=-1) //si le voisin existe
 				{
 					int32_t neighbor_offset = offset_of(neighbor, arena_size.stride);
-					//si le voisin ne pointe pas sur nous et n'est pas undef/en cours de recalcul (DIR_NOWHERE)
+					//si le voisin ne pointe pas sur nous et n'est pas undef/en cours de calcul (DIR_NOWHERE)
 					if (
 						pathfinder_array[neighbor_offset].next != oposite_direction(direction)
 						&& pathfinder_array[neighbor_offset].next != DIR_NOWHERE
 						)
 					{
-						//si il est intéréssant
+						//s'il est intéressant
 						if (pathfinder_array[neighbor_offset].distance < here_after.distance)
 						{
 							//on passe par lui
@@ -441,8 +441,8 @@ void    update_pathfinder_from(coordonee_t position)
 				coordonee_t neighbor = neighbor_of(position, direction);
 				if (neighbor.x!=-1)     //si le voisin existe
 				/* si
-				 * - nôtre distance s'est améliorée
-				 * - nôtre distance a changé et que ce voisins pointait sur nous
+				 * - notre distance s'est améliorée
+				 * - notre distance a changé et que ce voisin pointait sur nous
 				 * - ce voisin était undef
 				 * On l'update
 				 */
@@ -457,7 +457,7 @@ void    update_pathfinder_from(coordonee_t position)
 						)                                                 //        voisin pointe sur nous
 
 					//on marque le voisin comme a update
-					//(ajout dans la liste plus pointe nul-part)
+					//(ajout dans la liste plus pointe nul part)
 					{
 						borne_sup += 1;
 						if (borne_sup==pos_list_size)
@@ -513,7 +513,7 @@ uint32_t    game_menu()
 		KEY_BUILD,
 		KEY_RIGHT,
 		KEY_LEFT,
-		KEY_LEFT
+		KEY_BUILD
 		);
 
 	compose_disp_text(
@@ -561,7 +561,7 @@ uint32_t    game_menu()
 	while(true)
 	{
 		td_wait(100);
-		while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+		while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'exception de ne pas être bugée
 		{
 			if(input == KEY_DOWN)
 			{
@@ -627,7 +627,7 @@ void    sig_handler(int _)//est appelé si le jeu crash/qu'on le KILL
 {
 	//Pour éviter les warning d'arguments inutilisés
 	(void)_;
-	// Pour éviter un boucle de crash
+	// Pour éviter une boucle de crash
 	signal(SIGSEGV, SIG_DFL);
 	signal(SIGILL, SIG_DFL);
 	signal(SIGTERM, SIG_DFL);
@@ -635,7 +635,7 @@ void    sig_handler(int _)//est appelé si le jeu crash/qu'on le KILL
 }
 void reinit_game(void){
 
-	//reinit les defenses
+	//reinit les défenses
 	memset(defense_array, 0, sizeof(defense_t)*arena_size.row*arena_size.col);
 	//la position des mobs
 	memset(monster_positions, (long int)NULL, sizeof(monster_t *) * arena_size.row * arena_size.col);
@@ -658,8 +658,8 @@ void reinit_game(void){
 
 }
 void post_reinit_game(void){
-	//reinitialisations touchant au graphisme
-	//doit donc être éfféctué après le choix de difficulté
+	//ré initialisations touchant au graphisme
+	//doit donc être effectué après le choix de difficulté
 
 	build_defense(&la_base);
 	derniere_construction = NULL;
@@ -667,7 +667,7 @@ void post_reinit_game(void){
 	pixel_t pixel = (pixel_t)
 	{
 		.c1    = ' ',            //le caractères étant un simple ascii (un espace),
-		.c2    = '\0',           //il ne prend que c1, les autres sont donc nulls
+		.c2    = '\0',           //il ne prend que c1, les autres sont donc nuls
 		.color = COL_DEFAULT,
 	};
 	//background de l'arène
@@ -720,7 +720,7 @@ void menu_loop(void){
 				return;
 			}
 			td_wait(100);
-			if(read(STDIN_FILENO, &input, 1)==0) // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+			if(read(STDIN_FILENO, &input, 1)==0) // read se comporte comme scanf("%c",&input), a l'exception de ne pas être bugée
 				input='\0';
 		}
 	}
@@ -735,39 +735,39 @@ int    main()
 	init_graphical();
 
 	//restaure l'état du terminal en cas de crash
-	// La fonction signal permet d'executer du code lors d'un "signal"
-	// C'est une fonction du système d'exploitation qui permet d'alerter un programe
-	// Lorsque le programme crashe, on veut retablir l'état normal du terminal
+	// La fonction signal permet d'exécuter du code lors d'un "signal"
+	// C'est une fonction du système d'exploitation qui permet d'alerter un programme
+	// Lorsque le programme crash, on veut rétablir l'état normal du terminal
 	signal(SIGSEGV, sig_handler);
 	signal(SIGTERM, sig_handler);
 
-	//renseigne la fonction a éxécuter a la sortie du programme
+	//renseigne la fonction a exécuter a la sortie du programme
 	atexit(cleanup);
 
 	//initialize randomness using system time
 	srand( (unsigned int)time(NULL) );
 
 	//*initialise les variables globales*
-	//creation du background
+	//création du background
 	//taille de l'arène
 	arena_size.col    = termsize.col - reserved;
 	arena_size.stride = arena_size.col;
 	arena_size.row    = termsize.row;
 
-	//initialisation du background avec son patterne
+	//initialisation du background avec son paterne
 	background.size = arena_size;
 	background.data = safe_malloc(sizeof(pixel_t) * background.size.row * background.size.col);
 	pixel_t pixel = (pixel_t)
 	{
 		.c1    = ' ',            //le caractères étant un simple ascii (un espace),
-		.c2    = '\0',           //il ne prend que c1, les autres sont donc nulls
+		.c2    = '\0',           //il ne prend que c1, les autres sont donc nuls
 		.color = COL_DEFAULT,
 	};
 	for (int i = 0; i<background.size.col; i++)
 	{
 		for (int j = 0; j<background.size.row; j++)
 		{
-			if ( ( (i % 5)==2 ) || ( (j % 5)==2 ) ) //selectionne des lignes verticales et horizontales éspacé de 5 cases
+			if ( ( (i % 5)==2 ) || ( (j % 5)==2 ) ) //sélectionne des lignes verticales et horizontales espacé de 5 cases
 			{
 				pixel.background_color = COL_BOARD_BACKGROUND_1;
 			}
@@ -780,7 +780,7 @@ int    main()
 	}
 
 	monster_pool_create(200);
-	//creation (et initialisation a zero) de monster_position
+	//création (et initialisation a zéro) de monster_position
 	monster_positions = safe_malloc(sizeof(monster_t *) * arena_size.row * arena_size.col);
 	//autre variables globales
 	defense_array    = safe_malloc( arena_size.col * arena_size.row * sizeof(defense_t) );
@@ -819,7 +819,7 @@ int    main()
 void    treat_input(void)
 {
 	char input;
-	while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'éxeption de ne pas etre bugée
+	while ( read(STDIN_FILENO, &input, 1) )    // read se comporte comme scanf("%c",&input), a l'exception de ne pas être bugée
 	{
 		bool is_upper = false;
 		if ( isupper(input) )
@@ -830,8 +830,8 @@ void    treat_input(void)
 		switch (input)
 		{
 		case '\33':
-			//Le caractère d'échapement est présent devant plein de trucs spéciaux (Eg F1)
-			//trop compliquer a parser, on détruit l'input
+			//Le caractère d'échappement est présent devant plein de trucs spéciaux (Eg F1)
+			//trop compliquer à parser, on détruit l'input
 			clear_input();
 			break;
 		case KEY_QUIT:
@@ -860,7 +860,7 @@ void    treat_input(void)
 				move_cursor(DIR_LEFT, is_upper);
 			else if (game_state==GAME_SELECT_DEF)
 			{
-				//on abandonne la séléction
+				//on abandonne la sélection
 				hide_selection();
 				game_state = GAME_PLAYING;
 			}
@@ -901,7 +901,7 @@ void    fast_build(void)
 		build_defense(derniere_construction);
 	}
 }
-//construit une defense a la position du curseur
+//construit une défense a la position du curseur
 void    build_defense(const defense_type_t   *defense_type)
 {
 	derniere_construction = defense_type;
@@ -927,7 +927,7 @@ void    select_defense(void)
 	{
 		if (defense_array[offset_of(cursor_pos, arena_size.stride)].type!=NULL)
 		{
-			//une defense éxiste déja
+			//une défense existe déjà
 			return;
 		}
 
@@ -940,7 +940,7 @@ void    select_defense(void)
 	if (game_state==GAME_SELECT_DEF)
 	{
 		hide_selection();
-		//sel_index devrait etre une valeure légale car on a bien codé le reste
+		//sel_index devrait être une valeur légale car on a bien codé le reste
 		if (sel_index<shown_tree->sub_category_count)
 		{
 			shown_tree = shown_tree->sub_categories[sel_index];
@@ -957,21 +957,21 @@ void    select_defense(void)
 // Affiche un item de choix
 void    display_defense_selection_item(pixel_t icon, const char *text, bool is_category, uint32_t indice)
 {
-	int32_t posx = termsize.col - reserved + 1; //a gauche de la barre de droite
-	int32_t posy = termsize.row - indice * 3 - 3; //en bas, par pas de 3 (taille d'un icone)
+	int32_t posx = termsize.col - reserved + 1; //à gauche de la barre de droite
+	int32_t posy = termsize.row - indice * 3 - 3; //en bas, par pas de 3 (taille d'un icône)
 	//on affiche la frame
 	compose_disp_pict(
 		frame,
 		COMPOSE_UI,
 		(coordonee_t){ posx, posy }
 		);
-	//et l'icone au centre de la frame
+	//et l'icône au centre de la frame
 	compose_disp_pix(
 		icon,
 		COMPOSE_UI,
 		(coordonee_t){ posx + 1, posy + 1 }
 		);
-	//et le texte de déscription
+	//et le texte de description
 	compose_disp_text(
 		(char *)text,
 		is_category ? COL_GREEN : COL_BLUE,
@@ -982,7 +982,7 @@ void    display_defense_selection_item(pixel_t icon, const char *text, bool is_c
 		);
 }
 
-// Affiche le menu de selection de defense
+// Affiche le menu de sélection de défense
 void    display_selection(void)
 {
 	//on affiche les sous_catégories
@@ -1000,7 +1000,7 @@ void    display_selection(void)
 	}
 
 
-	//affichage de la selection de l'élément en bas
+	//affichage de la sélection de l'élément en bas
 	compose_disp_pix(
 		selection_indicator,
 		COMPOSE_UI,
@@ -1010,7 +1010,7 @@ void    display_selection(void)
 }
 void    hide_selection(void)
 {
-	//on clean l'entièreté de la colone de droite (ou il n'y a normalement que ca dans le niveau UI)
+	//on clean l'entièreté de la colonne de droite (ou il n'y a normalement que ça dans le niveau UI)
 	compose_del_area(
 		COMPOSE_UI,
 		(coordonee_t){ termsize.col - reserved, 0 },
@@ -1021,18 +1021,18 @@ void    hide_selection(void)
 
 void    augment_selection(void)
 {
-	//on cache l'ancienne selection
+	//on cache l'ancienne sélection
 	compose_del_pix(
 		COMPOSE_UI,
 		(coordonee_t){ termsize.col - reserved, termsize.row - 2 - 3 * sel_index }
 		);
 	sel_index++;
-	//si on dépasse le maximum, on retourne a 0
+	//si on dépasse le maximum, on retourne à 0
 	if (sel_index >= shown_tree->defense_count + shown_tree->sub_category_count)
 	{
 		sel_index = 0;
 	}
-	//on affiche la nouvelle selection
+	//on affiche la nouvelle sélection
 	compose_disp_pix(
 		selection_indicator,
 		COMPOSE_UI,
@@ -1041,7 +1041,7 @@ void    augment_selection(void)
 }
 void    diminish_selection(void)
 {
-	//on cache l'ancienne selection
+	//on cache l'ancienne sélection
 	compose_del_pix(
 		COMPOSE_UI,
 		(coordonee_t){ termsize.col - reserved, termsize.row - 2 - 3 * sel_index }
@@ -1052,7 +1052,7 @@ void    diminish_selection(void)
 	{
 		sel_index = shown_tree->defense_count + shown_tree->sub_category_count - 1;
 	}
-	//on affiche la nouvelle selection
+	//on affiche la nouvelle sélection
 	compose_disp_pix(
 		selection_indicator,
 		COMPOSE_UI,
@@ -1102,10 +1102,10 @@ void    single_monster_routine(monster_t **monster_ptr, coordonee_t position)
 	int64_t idle_time = turn - monster->last_action_turn;
 	if (idle_time<=0)
 	{
-		//le monstre vient de faire quelque chose (on repasse dessus si il vient de bouger). Il ne fait donc rien
+		//le monstre vient de faire quelque chose (on repasse dessus s'il vient de bouger). Il ne fait donc rien
 		return;
 	}
-	//on regarde vers ou le pathfinder nous indique d'aller
+	//on regarde vers où le pathfinder nous indique d'aller
 	DIRECTION mob_objective_dir = pathfinder_array[offset_of(position, arena_size.stride)].next;
 	coordonee_t mob_objective   = neighbor_of(position, mob_objective_dir);
 	if (mob_objective.x==-1)
@@ -1118,7 +1118,7 @@ void    single_monster_routine(monster_t **monster_ptr, coordonee_t position)
 	defense_t *defence = &defense_array[offset_of(mob_objective, arena_size.stride)];
 	if (defence->type!=NULL)
 	{
-		//on lui tappe dessus
+		//on lui tape dessus
 		damage_defense(mob_objective, monster->type->damage);
 		//et on a fait une action
 		monster->last_action_turn = turn;
@@ -1141,7 +1141,7 @@ void    monsters_routine(void)
 	{
 		for (position.x = 0; position.x<arena_size.col; position.x++)
 		{
-			//pour chaque cases, on parcour la liste chainée des monstre a cette case, et appèlle la routine sur eux
+			//pour chaque cases, on parcour la liste chainée des monstre a cette case, et appelle la routine sur eux
 			monster_t **monster_ptr      = &monster_positions[offset_of(position, arena_size.stride)];
 			monster_t **monster_ptr_next = NULL;
 			while (*monster_ptr!=NULL)
@@ -1195,11 +1195,11 @@ void    damage_defense(coordonee_t target_position, uint32_t damage)
 {
 	defense_t *target = &defense_array[offset_of(target_position, arena_size.stride)];
 
-	//on update le pathfinder tout les pas de 100 de vie, on stocke donc la vie précédente
+	//on update le pathfinder tous les pas de 10 de vie, on stocke donc la vie précédente
 	int32_t previous_life = target->life;
 	int32_t new_life      = previous_life - damage;
 
-	//si la défence est détruite, on retire son type (intérprété comme une abscence de défense)
+	//si la défense est détruite, on retire son type (interprété comme une absence de défense)
 	if (new_life<0)
 	{
 		target->type = NULL;
@@ -1208,9 +1208,9 @@ void    damage_defense(coordonee_t target_position, uint32_t damage)
 	else
 		target->life = new_life;
 
-	if (previous_life / 100!=new_life / 100)
+	if (previous_life / 10!=new_life / 10 || new_life<=0)
 	{
-		//la vie a suffisament changée, on update le pathfinder
+		//la vie a suffisamment changée, on update le pathfinder
 		update_pathfinder_from(target_position);
 	}
 }
@@ -1236,7 +1236,7 @@ void    single_defense_routine(coordonee_t defense_position)
 	defense_t defense = defense_array[offset_of(defense_position, arena_size.stride)];
 	if (defense.type->damage>0)
 	{
-		//cherche des monstres a proximité
+		//cherche des monstres à proximité
 		int32_t range = defense.type->range;
 		int32_t minx  = max(0, defense_position.x - range);
 		int32_t maxx  = min(arena_size.col, defense_position.x + range + 1);
@@ -1251,7 +1251,7 @@ void    single_defense_routine(coordonee_t defense_position)
 				if ( (*monster_ptr)!=NULL )
 				{
 					damage_monster(monster_ptr, defense.type->damage);
-					//on a fait des dégats; on s'arrète
+					//on a fait des dégâts; on s'arrête
 					return;
 				}
 			}
@@ -1260,7 +1260,7 @@ void    single_defense_routine(coordonee_t defense_position)
 }
 void    damage_monster(monster_t **monster_ptr, int32_t damage)
 {
-	//on retire les dégats a sa vie, puis on le tue si sa vie passe en dessous de 0
+	//on retire les dégâts a sa vie, puis on le tue si sa vie passe en dessous de 0
 	(*monster_ptr)->vie -= damage;
 	if ( (*monster_ptr)->vie<=0 )
 	{
@@ -1286,8 +1286,8 @@ void    right_column_refresh(void)
 		);
 	char text[50];
 	//PRId64 est une macro pour print les int64_t (ld ou lld selon les systèmes)
-	//PRIu64 our les unsigned
-	
+	//PRIu64 pour les unsigned
+
 	//label
 	sprintf(text, "%" PRId64, *joueur_vie);
 	compose_disp_text("vie de la base:", COL_RED, COL_DEFAULT, COMPOSE_ARENA, position, box_size);
@@ -1316,7 +1316,7 @@ void    right_column_refresh(void)
 	if (game_state==GAME_SELECT_DEF)
 	{
 		if (sel_index<shown_tree->sub_category_count)
-		{  //description dans le cas des sous-catégories
+		{  //description dans le cas des sous catégories
 			compose_disp_text(
 				shown_tree->sub_categories[sel_index]->desc_txt,
 				COL_TEXT,
@@ -1325,7 +1325,7 @@ void    right_column_refresh(void)
 				position,
 				box_size
 				);
-			//ainsi que les contrôles clavier (si on a la place) (il seront caché par le menu construction sinon)
+			//ainsi que les contrôles clavier (si on a la place) (ils seront cachés par le menu construction sinon)
 			position.y+=3;
 			sprintf(text, "%c :annuler\n"
 			        "%c/%c :valider",KEY_LEFT,KEY_RIGHT,KEY_BUILD);
@@ -1404,7 +1404,7 @@ void    toogle_pause(void)
 	if (game_state==GAME_PAUSED)
 	{
 		game_state = GAME_PLAYING;
-		//on cache la ou on avait affiché "jeu en pause"
+		//on cache là ou on avait affiché "jeu en pause"
 		compose_del_area(
 			COMPOSE_UI,
 			pos_of_text,
@@ -1423,10 +1423,10 @@ void    toogle_pause(void)
 			COL_MAGENTA,
 			COL_GRAY_DARK,
 			COMPOSE_UI,
-			//au centre de l'ecran
+			//au centre de l'écran
 			pos_of_text,
 			(coordonee_t){ 13, 3 }
-		);
+			);
 	}
 }
 
@@ -1438,7 +1438,7 @@ void    toogle_pause(void)
 // Augmente la taille de la mémoire de monstre
 void    monster_pool_expand(uint32_t expand_size)
 {
-	//allocation d'un nouveau morceau de mémoire pour les monstre
+	//allocation d'un nouveau morceau de mémoire pour les monstres
 	monster_memories_count += 1;
 	monster_memories        = safe_realloc( monster_memories, monster_memories_count * sizeof(monster_t *) );
 
