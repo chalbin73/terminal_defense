@@ -356,6 +356,7 @@ void    compose_init(void)
     compositor_stride = termsize.col * termsize.row;
     //on demande 5 images de la taille de l'écran, se suivant en mémoire
     compositor_pixels = (pixel_t *)safe_malloc(sizeof(pixel_t) * compositor_stride * 5);
+    memset(compositor_pixels, 0, sizeof(pixel_t) * compositor_stride * 5); //initialisation a zéro
 }
 
 //free le compositeur

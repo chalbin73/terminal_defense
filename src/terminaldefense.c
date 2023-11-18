@@ -135,6 +135,7 @@ void    cleanup(void)
 	free(monster_positions);
 	free(defense_array);
 	free(pathfinder_array);
+    free(background.data);
 }
 //affiche le premier monstre a la position demandée
 void    print_monster_at(coordonee_t pos)
